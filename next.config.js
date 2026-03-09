@@ -1,11 +1,7 @@
 /** @type {import('next').NextConfig} */
-import https from "https"
-
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
 
 const nextConfig = {
   images: {
-    domains: ["mediam.dotlife.store"],
     remotePatterns: [
       {
         protocol: "https",
@@ -15,6 +11,15 @@ const nextConfig = {
   },
   experimental: {
     serverActions: true
+  },
+  //!REMOVE LATER
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${process.env.NEXT_API_URL}/api/:path*` // backend service
+      }
+    ]
   }
 };
 
