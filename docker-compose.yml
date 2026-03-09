@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  customer:
+    build: .
+    container_name: console-shop-customer
+    ports:
+      - "3022:3022"
+    env_file:
+      - .env
+    restart: always
