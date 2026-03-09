@@ -19,7 +19,7 @@ ENV NODE_ENV=production
 
 COPY --from=builder /app ./
 
-RUN npm install --omit=dev
+RUN npm install
 
 EXPOSE 3000
 
