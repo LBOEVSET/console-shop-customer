@@ -13,7 +13,7 @@ steps:
     - --project=$PROJECT_ID
 
 
-# 2️⃣ Create / Update Kubernetes secret for frontend env
+# 2️⃣ Create / Update Kubernetes secret for frontend runtime env
 - name: 'gcr.io/cloud-builders/kubectl'
   id: 'update-frontend-env'
   entrypoint: bash
@@ -32,12 +32,17 @@ steps:
     - CLOUDSDK_CONTAINER_CLUSTER=console-cluster
 
 
-# 3️⃣ Build Docker image
+# 3️⃣ Build Docker image (inject build-time env for Next.js)
 - name: 'gcr.io/cloud-builders/docker'
   id: 'build-image'
   args:
     [
       'build',
+      '--build-arg','NEXT_PUBLIC_API_URL=$_NEXT_PUBLIC_API_URL',
+      '--build-arg','NEXT_PUBLIC_SOCKET_URL=$_NEXT_PUBLIC_SOCKET_URL',
+      '--build-arg','NEXT_PUBLIC_OMISE_PUBLIC_KEY=$_NEXT_PUBLIC_OMISE_PUBLIC_KEY',
+      '--build-arg','NEXTAUTH_SECRET=$_NEXTAUTH_SECRET',
+      '--build-arg','NODE_ENV=$_NODE_ENV',
       '-t',
       'asia-southeast1-docker.pkg.dev/$PROJECT_ID/console-shop/frontend:$SHORT_SHA',
       '.'
