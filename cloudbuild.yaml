@@ -1,6 +1,6 @@
 steps:
 
-# 1️⃣ Authenticate to cluster
+# 1️⃣ Authenticate to GKE cluster
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   id: 'auth-cluster'
   entrypoint: gcloud
@@ -13,7 +13,26 @@ steps:
     - --project=$PROJECT_ID
 
 
-# 2️⃣ Build frontend image
+# 2️⃣ Create / Update Kubernetes secret for frontend env
+- name: 'gcr.io/cloud-builders/kubectl'
+  id: 'update-frontend-env'
+  entrypoint: bash
+  args:
+    - -c
+    - |
+      kubectl create secret generic frontend-env \
+        --from-literal=NEXT_PUBLIC_API_URL="$_NEXT_PUBLIC_API_URL" \
+        --from-literal=NEXT_PUBLIC_SOCKET_URL="$_NEXT_PUBLIC_SOCKET_URL" \
+        --from-literal=NEXT_PUBLIC_OMISE_PUBLIC_KEY="$_NEXT_PUBLIC_OMISE_PUBLIC_KEY" \
+        --from-literal=NEXTAUTH_SECRET="$_NEXTAUTH_SECRET" \
+        --from-literal=NODE_ENV="$_NODE_ENV" \
+        --dry-run=client -o yaml | kubectl apply -f -
+  env:
+    - CLOUDSDK_COMPUTE_REGION=asia-southeast1
+    - CLOUDSDK_CONTAINER_CLUSTER=console-cluster
+
+
+# 3️⃣ Build Docker image
 - name: 'gcr.io/cloud-builders/docker'
   id: 'build-image'
   args:
@@ -25,7 +44,7 @@ steps:
     ]
 
 
-# 3️⃣ Push image
+# 4️⃣ Push Docker image
 - name: 'gcr.io/cloud-builders/docker'
   id: 'push-image'
   args:
@@ -35,7 +54,7 @@ steps:
     ]
 
 
-# 4️⃣ Deploy to GKE
+# 5️⃣ Deploy new image to GKE
 - name: 'gcr.io/cloud-builders/kubectl'
   id: 'deploy'
   args:
@@ -55,3 +74,4 @@ images:
 
 options:
   logging: CLOUD_LOGGING_ONLY
+  
