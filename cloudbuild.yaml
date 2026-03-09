@@ -1,0 +1,57 @@
+steps:
+
+# 1️⃣ Authenticate to cluster
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  id: 'auth-cluster'
+  entrypoint: gcloud
+  args:
+    - container
+    - clusters
+    - get-credentials
+    - console-cluster
+    - --region=asia-southeast1
+    - --project=$PROJECT_ID
+
+
+# 2️⃣ Build frontend image
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'build-image'
+  args:
+    [
+      'build',
+      '-t',
+      'asia-southeast1-docker.pkg.dev/$PROJECT_ID/console-shop/frontend:$SHORT_SHA',
+      '.'
+    ]
+
+
+# 3️⃣ Push image
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'push-image'
+  args:
+    [
+      'push',
+      'asia-southeast1-docker.pkg.dev/$PROJECT_ID/console-shop/frontend:$SHORT_SHA'
+    ]
+
+
+# 4️⃣ Deploy to GKE
+- name: 'gcr.io/cloud-builders/kubectl'
+  id: 'deploy'
+  args:
+    [
+      'set',
+      'image',
+      'deployment/console-web',
+      'console-web=asia-southeast1-docker.pkg.dev/$PROJECT_ID/console-shop/frontend:$SHORT_SHA'
+    ]
+  env:
+    - CLOUDSDK_COMPUTE_REGION=asia-southeast1
+    - CLOUDSDK_CONTAINER_CLUSTER=console-cluster
+
+
+images:
+- 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/console-shop/frontend:$SHORT_SHA'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
