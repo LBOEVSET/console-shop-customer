@@ -7,6 +7,7 @@ const api = axios.create({
 })
 
 let isRefreshing = false
+let refreshPromise: Promise<void> | null = null
 
 api.interceptors.response.use(
   (response) => response,
@@ -22,12 +23,22 @@ api.interceptors.response.use(
       try {
         if (!isRefreshing) {
           isRefreshing = true
-          await initGuest()
+
+          refreshPromise = initGuest()
+
+          await refreshPromise
+
           isRefreshing = false
+          refreshPromise = null
+        } else if (refreshPromise) {
+          await refreshPromise
         }
 
         return api(originalRequest)
+
       } catch (err) {
+        isRefreshing = false
+        refreshPromise = null
         return Promise.reject(err)
       }
     }

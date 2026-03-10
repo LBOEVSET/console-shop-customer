@@ -68,7 +68,7 @@ export default function RegisterPage() {
             Create Account
           </h1>
           <p className="text-zinc-400 text-sm">
-            Join ConsoleShop and start shopping
+            Join ArcadeZenter  and start shopping
           </p>
         </div>
 

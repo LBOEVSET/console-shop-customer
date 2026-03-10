@@ -163,7 +163,7 @@ export default function Navbar() {
             href="/"
             className="text-2xl font-extrabold text-white tracking-wider"
           >
-            ConsoleShop
+            ArcadeZenter
           </Link>
 
           <span className="hidden lg:block text-sm text-gray-300">
