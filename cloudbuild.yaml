@@ -31,8 +31,20 @@ steps:
     - CLOUDSDK_COMPUTE_REGION=asia-southeast1
     - CLOUDSDK_CONTAINER_CLUSTER=console-cluster
 
+# 3️⃣ Restart frontend so it reloads env secrets
+- name: 'gcr.io/cloud-builders/kubectl'
+  id: 'restart-frontend'
+  args:
+    [
+      'rollout',
+      'restart',
+      'deployment/console-web'
+    ]
+  env:
+    - CLOUDSDK_COMPUTE_REGION=asia-southeast1
+    - CLOUDSDK_CONTAINER_CLUSTER=console-cluster
 
-# 3️⃣ Build Docker image (inject build-time env for Next.js)
+# 4️⃣ Build Docker image (inject build-time env for Next.js)
 - name: 'gcr.io/cloud-builders/docker'
   id: 'build-image'
   args:
@@ -50,7 +62,7 @@ steps:
     ]
 
 
-# 4️⃣ Push Docker image
+# 5️⃣ Push Docker image
 - name: 'gcr.io/cloud-builders/docker'
   id: 'push-image'
   args:
@@ -60,7 +72,7 @@ steps:
     ]
 
 
-# 5️⃣ Deploy new image to GKE
+# 6️⃣ Deploy new image to GKE
 - name: 'gcr.io/cloud-builders/kubectl'
   id: 'deploy'
   args:
