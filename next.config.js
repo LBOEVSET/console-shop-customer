@@ -9,9 +9,6 @@ const nextConfig = {
       }
     ],
   },
-  experimental: {
-    serverActions: true
-  },
   //!REMOVE LATER
   async rewrites() {
     return [
