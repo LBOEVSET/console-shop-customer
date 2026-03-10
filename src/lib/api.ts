@@ -1,8 +1,13 @@
 import axios from "axios"
 import { initGuest } from "@/lib/guest"
 
+const baseURL =
+  typeof window === "undefined"
+    ? process.env.NEXT_API_URL
+    : process.env.NEXT_PUBLIC_API_URL;
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: baseURL,
   withCredentials: true,
 })
 
