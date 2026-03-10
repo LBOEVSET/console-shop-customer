@@ -8,7 +8,7 @@ import AuthInitializer from "@/components/auth/auth-initializer"
 import GuestInitializer from "@/components/auth/GuestInitializer"
 
 export const metadata: Metadata = {
-  title: "Console Shop",
+  title: "Arcade Zenter",
   description: "Console Games & Accessories Marketplace",
 }
 
