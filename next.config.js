@@ -5,19 +5,10 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "**"
-      }
+        hostname: "**",
+      },
     ],
   },
-  //!REMOVE LATER
-  async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        destination: `${process.env.NEXT_API_URL}/api/:path*` // backend service
-      }
-    ]
-  }
 };
 
 export default nextConfig;
