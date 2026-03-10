@@ -25,6 +25,7 @@ steps:
         --from-literal=NEXT_PUBLIC_SOCKET_URL="$_NEXT_PUBLIC_SOCKET_URL" \
         --from-literal=NEXT_PUBLIC_OMISE_PUBLIC_KEY="$_NEXT_PUBLIC_OMISE_PUBLIC_KEY" \
         --from-literal=NEXTAUTH_SECRET="$_NEXTAUTH_SECRET" \
+        --from-literal=DOMAIN="$_DOMAIN" \
         --from-literal=NODE_ENV="$_NODE_ENV" \
         --dry-run=client -o yaml | kubectl apply -f -
   env:
