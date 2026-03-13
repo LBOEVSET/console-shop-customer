@@ -21,8 +21,9 @@ interface AuthState {
   register: (data: any) => Promise<{ success: boolean; message: string }>
   login: (data: any) => Promise<{ success: boolean; message: string }>
   logout: () => Promise<void>
+  verifyOtp: (code: string) => Promise<any> 
+  resendOtp: () => Promise<any> 
 }
-
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
@@ -85,5 +86,35 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     await api.post("/auth/logout")
     set({ user: null })
-  }
+  },
+
+  verifyOtp: async (code: string) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify/otp`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    })
+
+    const data = await res.json()
+
+    return {
+      success: res.ok,
+      message: data.message,
+    }
+  },
+
+  resendOtp: async () => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/send/otp`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    const data = await res.json();
+
+    return {
+      success: res.ok,
+      message: data.message,
+    };
+  },
 }))

@@ -49,7 +49,7 @@ export default function RegisterPage() {
         message: result.message,
       })
 
-      setTimeout(() => router.push("/"), 1500)
+      router.replace("/verify-otp")
     } else {
       setPopup({
         type: "error",
