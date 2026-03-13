@@ -1,17 +1,31 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useAuthStore } from "@/store/auth.store"
 import { useRouter } from "next/navigation"
 
 export default function VerifyOtpPage() {
   const verifyOtp = useAuthStore((s) => s.verifyOtp)
+  const resendOtp = useAuthStore((s) => s.resendOtp)
   const router = useRouter()
 
   const [code, setCode] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [popup, setPopup] = useState<string | null>(null)
+
+  const [cooldown, setCooldown] = useState(60)
+
+  // countdown timer
+  useEffect(() => {
+    if (cooldown === 0) return
+
+    const timer = setInterval(() => {
+      setCooldown((prev) => prev - 1)
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [cooldown])
 
   const handleVerify = async () => {
     try {
@@ -29,13 +43,30 @@ export default function VerifyOtpPage() {
 
       setTimeout(() => {
         router.refresh()
-        router.push("/")
+        router.replace("/")
       }, 1500)
 
     } catch {
       setError("Verification failed")
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleResend = async () => {
+    try {
+      const res = await resendOtp()
+
+      if (!res.success) {
+        setError(res.message)
+        return
+      }
+
+      setPopup("OTP sent again")
+      setCooldown(60)
+
+    } catch {
+      setError("Failed to resend OTP")
     }
   }
 
@@ -67,6 +98,20 @@ export default function VerifyOtpPage() {
         >
           {loading ? "Verifying..." : "Verify"}
         </button>
+
+        {/* Resend OTP */}
+        <div className="text-center text-sm text-gray-400">
+          {cooldown > 0 ? (
+            <span>Resend OTP in {cooldown}s</span>
+          ) : (
+            <button
+              onClick={handleResend}
+              className="text-indigo-400 hover:text-indigo-300"
+            >
+              Resend OTP
+            </button>
+          )}
+        </div>
 
       </div>
 
