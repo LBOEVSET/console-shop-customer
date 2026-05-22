@@ -1,0 +1,95 @@
+steps:
+
+# 1️⃣ Authenticate to GKE cluster
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  id: 'auth-cluster'
+  entrypoint: gcloud
+  args:
+    - container
+    - clusters
+    - get-credentials
+    - console-cluster
+    - --region=asia-southeast1
+    - --project=$PROJECT_ID
+
+
+# 2️⃣ Create / Update Kubernetes secret for frontend runtime env
+- name: 'gcr.io/cloud-builders/kubectl'
+  id: 'update-frontend-env'
+  entrypoint: bash
+  args:
+    - -c
+    - |
+      kubectl create secret generic frontend-env \
+        --from-literal=NEXT_PUBLIC_API_URL="$_NEXT_PUBLIC_API_URL" \
+        --from-literal=NEXT_PUBLIC_SOCKET_URL="$_NEXT_PUBLIC_SOCKET_URL" \
+        --from-literal=NEXT_PUBLIC_OMISE_PUBLIC_KEY="$_NEXT_PUBLIC_OMISE_PUBLIC_KEY" \
+        --from-literal=NEXTAUTH_SECRET="$_NEXTAUTH_SECRET" \
+        --from-literal=DOMAIN="$_DOMAIN" \
+        --from-literal=NODE_ENV="$_NODE_ENV" \
+        --dry-run=client -o yaml | kubectl apply -f -
+  env:
+    - CLOUDSDK_COMPUTE_REGION=asia-southeast1
+    - CLOUDSDK_CONTAINER_CLUSTER=console-cluster
+
+# 3️⃣ Restart frontend so it reloads env secrets
+- name: 'gcr.io/cloud-builders/kubectl'
+  id: 'restart-frontend'
+  args:
+    [
+      'rollout',
+      'restart',
+      'deployment/console-web'
+    ]
+  env:
+    - CLOUDSDK_COMPUTE_REGION=asia-southeast1
+    - CLOUDSDK_CONTAINER_CLUSTER=console-cluster
+
+# 4️⃣ Build Docker image (inject build-time env for Next.js)
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'build-image'
+  args:
+    [
+      'build',
+      '--build-arg','NEXT_PUBLIC_API_URL=$_NEXT_PUBLIC_API_URL',
+      '--build-arg','NEXT_PUBLIC_SOCKET_URL=$_NEXT_PUBLIC_SOCKET_URL',
+      '--build-arg','NEXT_PUBLIC_OMISE_PUBLIC_KEY=$_NEXT_PUBLIC_OMISE_PUBLIC_KEY',
+      '--build-arg','NEXTAUTH_SECRET=$_NEXTAUTH_SECRET',
+      '--build-arg','NODE_ENV=$_NODE_ENV',
+      '--build-arg','PORT=$_PORT',
+      '-t',
+      'asia-southeast1-docker.pkg.dev/$PROJECT_ID/console-shop/frontend:$SHORT_SHA',
+      '.'
+    ]
+
+
+# 5️⃣ Push Docker image
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'push-image'
+  args:
+    [
+      'push',
+      'asia-southeast1-docker.pkg.dev/$PROJECT_ID/console-shop/frontend:$SHORT_SHA'
+    ]
+
+
+# 6️⃣ Deploy new image to GKE
+- name: 'gcr.io/cloud-builders/kubectl'
+  id: 'deploy'
+  args:
+    [
+      'set',
+      'image',
+      'deployment/console-web',
+      'console-web=asia-southeast1-docker.pkg.dev/$PROJECT_ID/console-shop/frontend:$SHORT_SHA'
+    ]
+  env:
+    - CLOUDSDK_COMPUTE_REGION=asia-southeast1
+    - CLOUDSDK_CONTAINER_CLUSTER=console-cluster
+
+
+images:
+- 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/console-shop/frontend:$SHORT_SHA'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
