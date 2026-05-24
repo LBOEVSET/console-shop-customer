@@ -26,7 +26,10 @@ export async function middleware(request: NextRequest) {
   }
 
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL
+    // Use the internal (server-side) URL — NEXT_PUBLIC_API_URL is now the
+    // relative path "/api/v1" intended for the browser. The middleware runs
+    // in the Node.js/Edge runtime and needs an absolute URL for fetch().
+    const apiUrl = process.env.INTERNAL_API_URL
     if (!apiUrl) return NextResponse.next()
 
     const guestRes = await fetch(`${apiUrl}/auth/guest/init`, {

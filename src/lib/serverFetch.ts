@@ -12,8 +12,11 @@ export async function serverFetch(path: string) {
   const cookieStore = await cookies()
   const cookieHeader = cookieStore.toString()
 
+  // Use the absolute internal URL — NEXT_PUBLIC_API_URL is now "/api/v1"
+  // (relative, for the browser). Server Components run on the Node.js server
+  // and need an absolute URL for fetch().
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}${path}`,
+    `${process.env.INTERNAL_API_URL}${path}`,
     {
       headers: {
         Cookie: cookieHeader,

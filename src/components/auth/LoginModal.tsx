@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { useAuthStore } from "@/store/auth.store"
 
 interface Props {
@@ -90,6 +91,14 @@ export default function LoginModal({ onSuccess, onClose }: Props) {
           >
             {loading ? "Logging in..." : "Login"}
           </button>
+
+          <Link
+            href="/register"
+            onClick={onClose}
+            className="block w-full text-center border border-indigo-500 text-indigo-400 hover:bg-indigo-500/10 py-3 rounded-lg font-medium transition"
+          >
+            Create an Account
+          </Link>
 
           <button
             onClick={onClose}
