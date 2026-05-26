@@ -7,10 +7,13 @@ import ProductSection from "@/components/home/ProductSection"
 import { serverFetch } from "@/lib/serverFetch"
 
 export default async function HomePage() {
-  const [articles, products] = await Promise.all([
+  const [articlesRes, productsRes] = await Promise.all([
     serverFetch("/articles"),
     serverFetch("/products"),
   ])
+
+  const articles = articlesRes.data ?? []
+  const products = productsRes.data ?? []
 
   return (
     <main className="relative text-white pt-12">

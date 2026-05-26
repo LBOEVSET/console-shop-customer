@@ -11,7 +11,7 @@ export default function OrdersPage() {
     queryKey: ["my-orders"],
     queryFn: async () => {
       const res = await api.get("/orders/my")
-      return res.data as Order[]
+      return res.data.data as Order[]
     }
   })
 

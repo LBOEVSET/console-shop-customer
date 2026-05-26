@@ -14,7 +14,7 @@ export default function ArticleDetailPage() {
     queryKey: ["article", slug],
     queryFn: async () => {
       const res = await api.get(`/articles/${slug}`)
-      return res.data
+      return res.data.data
     },
     enabled: !!slug,
   })

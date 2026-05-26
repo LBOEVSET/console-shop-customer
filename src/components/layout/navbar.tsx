@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { User, LogOut, Heart, ShoppingCart } from "lucide-react"
+import { User, LogOut, Heart, ShoppingCart, Ticket } from "lucide-react"
 import { useAuthStore } from "@/store/auth.store"
 import { useCartStore } from "@/store/cart.store"
 import { useCurrencyStore } from "@/store/currency.store"
@@ -272,11 +272,20 @@ export default function Navbar() {
                   </Link>
 
                   <Link
+                    href="/support/tickets"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-2 px-4 py-3 hover:bg-cyan-400/10"
+                  >
+                    <Ticket size={14} className="opacity-60" />
+                    My Tickets
+                  </Link>
+
+                  <Link
                     href="/support"
                     onClick={() => setOpen(false)}
                     className="block px-4 py-3 hover:bg-cyan-400/10"
                   >
-                    Support
+                    New Ticket
                   </Link>
 
                   <button

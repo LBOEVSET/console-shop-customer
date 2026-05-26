@@ -10,7 +10,7 @@ export default function ArticlesPage() {
     queryKey: ["articles"],
     queryFn: async () => {
       const res = await api.get("/articles")
-      return res.data
+      return res.data.data
     }
   })
 

@@ -10,7 +10,7 @@ export default function ProductsPage() {
     queryKey: ["products"],
     queryFn: async () => {
       const res = await api.get("/products")
-      return res.data
+      return res.data.data
     }
   })
 

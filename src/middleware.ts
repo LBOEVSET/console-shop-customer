@@ -1,24 +1,8 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
-/**
- * Middleware — Guest session initializer
- *
- * Problem being solved:
- *   serverFetch() is called inside Server Components (e.g. page.tsx).
- *   Server Components cannot SET cookies — they can only read them.
- *   So when a brand-new visitor has no accessToken cookie, serverFetch
- *   was calling guest/init, using the returned cookie for one request,
- *   then discarding it. Every subsequent SSR request started cookieless.
- *
- * Fix:
- *   Middleware runs BEFORE the Server Component renders. It can both
- *   read and write cookies via NextResponse. If there is no accessToken
- *   we call guest/init here, get the httpOnly cookies from the backend,
- *   and forward them to the browser via Set-Cookie headers on the response.
- *   The browser stores them, and every future request — client or server
- *   — will carry them automatically.
- */
+// Middleware — Guest session initializer
+
 export async function middleware(request: NextRequest) {
   // Already has a session cookie — nothing to do
   if (request.cookies.has("accessToken")) {
@@ -51,18 +35,6 @@ export async function middleware(request: NextRequest) {
 
     if (setCookies.length === 0) return NextResponse.next()
 
-    // ── KEY FIX ──────────────────────────────────────────────────────────────
-    // NextResponse.next() only affects the *response* (browser Set-Cookie).
-    // But serverFetch() calls `cookies()` from next/headers, which reads the
-    // *incoming request* headers — not the response. So the Server Component
-    // renders before the browser ever receives the new cookies, and sees no
-    // accessToken at all, causing the 401.
-    //
-    // The fix: forward the new cookie values into the *request* headers too
-    // via `NextResponse.next({ request: { headers } })`. Next.js will use
-    // these headers when it passes the request to Server Components, so
-    // `cookies()` will see the fresh guest token in the same SSR pass.
-    // ─────────────────────────────────────────────────────────────────────────
     const requestHeaders = new Headers(request.headers)
     const existingCookies = requestHeaders.get("cookie") ?? ""
     const cookiePairs = setCookies

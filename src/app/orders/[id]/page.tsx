@@ -12,7 +12,7 @@ export default function OrderDetailPage() {
     queryKey: ["order", id],
     queryFn: async () => {
       const res = await api.get(`/orders/${id}`)
-      return res.data
+      return res.data.data
     },
     enabled: !!id,
   })

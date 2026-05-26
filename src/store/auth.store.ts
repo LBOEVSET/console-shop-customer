@@ -32,7 +32,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   fetchProfile: async () => {
     try {
       const res = await api.get("/profile")
-      set({ user: res.data, loading: false })
+      set({ user: res.data.data, loading: false })
     } catch {
       set({ user: null, loading: false })
     }
@@ -44,7 +44,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       const profile = await api.get("/profile")
 
-      set({ user: profile.data })
+      set({ user: profile.data.data })
       await useCartStore.getState().fetchCart()
 
       return {
@@ -68,7 +68,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       const profile = await api.get("/profile")
 
-      set({ user: profile.data })
+      set({ user: profile.data.data })
 
       return {
         success: true,
@@ -95,7 +95,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       // fetch logged-in user
       const profile = await api.get("/profile")
 
-      set({ user: profile.data })
+      set({ user: profile.data.data })
 
       // also load cart if needed
       await useCartStore.getState().fetchCart()

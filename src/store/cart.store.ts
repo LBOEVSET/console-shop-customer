@@ -45,7 +45,7 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   fetchCart: async () => {
     const res = await api.get("/cart")
-    set({ items: res.data.items })
+    set({ items: res.data.data.items })
   },
 
   addToCart: async (productId, quantity) => {
@@ -56,19 +56,19 @@ export const useCartStore = create<CartState>((set, get) => ({
     }
 
     const res = await api.get("/cart")
-    set({ items: res.data.items })
+    set({ items: res.data.data.items })
   },
 
   updateCart: async (productId, quantity) => {
     await api.patch("/cart/update", { productId, quantity })
     const res = await api.get("/cart")
-    set({ items: res.data.items })
+    set({ items: res.data.data.items })
   },
 
   removeFromCart: async (productId) => {
     await api.delete(`/cart/remove/${productId}`)
     const res = await api.get("/cart")
-    set({ items: res.data.items })
+    set({ items: res.data.data.items })
   },
 
   clearCart: async () => {

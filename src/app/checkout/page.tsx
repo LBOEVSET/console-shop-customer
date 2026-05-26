@@ -66,7 +66,7 @@ export default function CheckoutPage() {
         paymentMethod
       })
 
-      const { orderId, qrCode } = res.data
+      const { orderId, qrCode } = res.data.data
 
       setOrderId(orderId)
       setShowModal(true)
@@ -95,7 +95,7 @@ export default function CheckoutPage() {
       try {
         const res = await api.get(`/orders/${orderId}`)
 
-        if (res.data.status === "PAID") {
+        if (res.data.data.status === "PAID") {
           setPaymentStatus("SUCCESS")
           clearCart()
 
@@ -105,7 +105,7 @@ export default function CheckoutPage() {
           }, 1500)
         }
 
-        if (res.data.status === "FAILED") {
+        if (res.data.data.status === "FAILED") {
           setPaymentStatus("FAILED")
         }
       } catch {}
@@ -166,7 +166,7 @@ export default function CheckoutPage() {
             token
           })
 
-          if (res.data.success) {
+          if (res.data.data.success) {
             setPaymentStatus("SUCCESS")
             clearCart()
 

@@ -31,7 +31,7 @@ export default function ProfilePage() {
 
   const loadAddresses = async () => {
     const res = await api.get("/profile")
-    setAddresses(res.data.addresses || [])
+    setAddresses(res.data.data?.addresses || [])
   }
 
   const updateProfile = async () => {
