@@ -1,302 +1,381 @@
 "use client"
 
 import Link from "next/link"
-import { User, LogOut, Heart, ShoppingCart, Ticket } from "lucide-react"
+import {
+  User, LogOut, ShoppingCart, Ticket,
+  Search, X, ChevronDown,
+} from "lucide-react"
 import { useAuthStore } from "@/store/auth.store"
 import { useCartStore } from "@/store/cart.store"
 import { useCurrencyStore } from "@/store/currency.store"
-import { useState, useRef, useEffect } from "react"
-import MegaMenu from "@/components/layout/MegaMenu"
+import {
+  useState, useRef, useEffect,
+  useCallback, type ReactNode,
+} from "react"
+import { useQuery } from "@tanstack/react-query"
+import api from "@/lib/api"
+import { useRouter, usePathname, useSearchParams } from "next/navigation"
+import { Product, Platform, Category } from "@/types/product"
 
-export default function Navbar() {
-  const { user, logout, loading } = useAuthStore()
-  const totalItems = useCartStore((state) => state.getTotalItems())
-  const { region, currency, setCurrency } = useCurrencyStore()
+// ─── debounce ────────────────────────────────────────────────────────────────
+function useDebounce<T>(value: T, delay = 350): T {
+  const [d, setD] = useState(value)
+  useEffect(() => {
+    const t = setTimeout(() => setD(value), delay)
+    return () => clearTimeout(t)
+  }, [value, delay])
+  return d
+}
 
+// ─── generic dropdown panel ──────────────────────────────────────────────────
+function Dropdown({
+  trigger,
+  children,
+  align = "left",
+  minWidth = "min-w-[210px]",
+}: {
+  trigger: (open: boolean) => ReactNode
+  children: ReactNode
+  align?: "left" | "right"
+  minWidth?: string
+}) {
   const [open, setOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
-  const [activeMenu, setActiveMenu] = useState<string | null>(null)
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener("mousedown", h)
+    return () => document.removeEventListener("mousedown", h)
+  }, [])
+  return (
+    <div ref={ref} className="relative">
+      <div onClick={() => setOpen(o => !o)}>{trigger(open)}</div>
+      {open && (
+        <div className={`absolute top-full mt-2 z-[999] py-1.5 rounded-xl
+          border border-white/10 bg-[#1a1730]/98 backdrop-blur-md
+          shadow-2xl shadow-black/60 ${minWidth}
+          ${align === "right" ? "right-0" : "left-0"}`}>
+          {children}
+        </div>
+      )}
+    </div>
+  )
+}
 
-  const [search, setSearch] = useState("")
-  const [results, setResults] = useState<any[]>([])
+// ─── shared dropdown button ───────────────────────────────────────────────────
+function FilterBtn({
+  label, active, onClear, open,
+}: {
+  label: string; active?: boolean; onClear?: () => void; open: boolean
+}) {
+  return (
+    <button
+      type="button"
+      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+        border transition-all duration-150 whitespace-nowrap
+        ${active
+          ? "bg-purple-600/15 border-purple-500/50 text-purple-300"
+          : "bg-white/5 border-white/15 text-gray-200 hover:border-white/30 hover:text-white"
+        }`}
+    >
+      {label}
+      {active && onClear ? (
+        <span
+          role="button"
+          tabIndex={0}
+          onClickCapture={(e) => { e.stopPropagation(); onClear() }}
+          className="text-purple-400 hover:text-white transition"
+        >
+          <X size={11} />
+        </span>
+      ) : (
+        <ChevronDown size={12} className={`transition-transform duration-150 ${open ? "rotate-180" : ""}`} />
+      )}
+    </button>
+  )
+}
 
-  const [langOpen, setLangOpen] = useState(false)
+// ─── main navbar ─────────────────────────────────────────────────────────────
+export default function Navbar() {
+  const router    = useRouter()
+  const pathname  = usePathname()
+  const searchParams = useSearchParams()
 
-  const [showLowerNav, setShowLowerNav] = useState(true)
-  const [hoveringTop, setHoveringTop] = useState(false)
-  const lastScrollY = useRef(0)
+  const { user, logout, loading } = useAuthStore()
+  const totalItems = useCartStore(s => s.getTotalItems())
+  const { currency, setCurrency } = useCurrencyStore()
 
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const [scrolled,     setScrolled]     = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [langOpen,     setLangOpen]     = useState(false)
+  const userMenuRef = useRef<HTMLDivElement>(null)
+
+  // search
+  const [search,       setSearch]       = useState("")
+  const [searchFocused, setSearchFocused] = useState(false)
+  const debouncedSearch = useDebounce(search)
+  const searchRef = useRef<HTMLDivElement>(null)
+
+  // filters
+  const [platformId,   setPlatformId]   = useState(searchParams.get("platformId") ?? "")
+  const [categoryIds,  setCategoryIds]  = useState<string[]>(searchParams.getAll("categoryIds"))
+  const [priceInputs,  setPriceInputs]  = useState({ min: searchParams.get("minPrice") ?? "", max: searchParams.get("maxPrice") ?? "" })
+  const [appliedPrice, setAppliedPrice] = useState({ min: searchParams.get("minPrice") ?? "", max: searchParams.get("maxPrice") ?? "" })
 
   const currencies = [
     { region: "US", currency: "USD" },
     { region: "TH", currency: "THB" },
   ]
 
-  const menus: {
-    label: string
-    items: { name: string; image: string }[]
-  }[] = [
-    {
-      label: "PC",
-      items: [
-        { name: "Steam", image: "https://picsum.photos/400/300?1" },
-        { name: "Epic Games", image: "https://picsum.photos/400/300?2" },
-        { name: "Battle.net", image: "https://picsum.photos/400/300?3" },
-      ],
-    },
-    {
-      label: "PLAYSTATION",
-      items: [
-        { name: "PS5", image: "https://picsum.photos/400/300?4" },
-        { name: "PS4", image: "https://picsum.photos/400/300?5" },
-        { name: "PS Plus", image: "https://picsum.photos/400/300?6" },
-      ],
-    },
-    {
-      label: "XBOX",
-      items: [
-        { name: "Series X", image: "https://picsum.photos/400/300?7" },
-        { name: "Game Pass", image: "https://picsum.photos/400/300?8" },
-        { name: "Controllers", image: "https://picsum.photos/400/300?9" },
-      ],
-    },
-    {
-      label: "NINTENDO",
-      items: [
-        { name: "Switch", image: "https://picsum.photos/400/300?10" },
-        { name: "Zelda", image: "https://picsum.photos/400/300?11" },
-        { name: "Mario", image: "https://picsum.photos/400/300?12" },
-      ],
-    },
-  ]
+  // ── remote data ────────────────────────────────────────────────────────────
+  const { data: platforms } = useQuery<Platform[]>({
+    queryKey: ["platforms"],
+    queryFn: async () => (await api.get("/products/platforms")).data.data ?? (await api.get("/products/platforms")).data,
+    staleTime: 60 * 60 * 1000,
+  })
 
-  // Close dropdown
+  const { data: categories } = useQuery<Category[]>({
+    queryKey: ["categories"],
+    queryFn: async () => (await api.get("/products/categories")).data.data ?? (await api.get("/products/categories")).data,
+    staleTime: 60 * 60 * 1000,
+  })
+
+  const { data: searchResults, isFetching: searchLoading } = useQuery<Product[]>({
+    queryKey: ["search-dropdown", debouncedSearch],
+    queryFn: async () => {
+      if (!debouncedSearch.trim()) return []
+      const res = await api.get(`/products?searchWord=${encodeURIComponent(debouncedSearch)}&limit=6`)
+      return res.data.data ?? res.data ?? []
+    },
+    enabled: !!debouncedSearch.trim(),
+    staleTime: 30_000,
+  })
+
+  // ── sync URL → state when on /products ────────────────────────────────────
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setOpen(false)
-      }
+    if (pathname === "/products") {
+      setPlatformId(searchParams.get("platformId") ?? "")
+      setCategoryIds(searchParams.getAll("categoryIds"))
+      const min = searchParams.get("minPrice") ?? ""
+      const max = searchParams.get("maxPrice") ?? ""
+      setPriceInputs({ min, max })
+      setAppliedPrice({ min, max })
     }
-    const handleEsc = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false)
-    }
+  }, [pathname, searchParams])
 
-    document.addEventListener("mousedown", handleClickOutside)
-    document.addEventListener("keydown", handleEsc)
+  // ── navigate with filters ──────────────────────────────────────────────────
+  const navigate = useCallback((overrides: {
+    platformId?: string
+    categoryIds?: string[]
+    minPrice?: string
+    maxPrice?: string
+  } = {}) => {
+    const pid  = overrides.platformId  ?? platformId
+    const cats = overrides.categoryIds ?? categoryIds
+    const min  = overrides.minPrice    ?? appliedPrice.min
+    const max  = overrides.maxPrice    ?? appliedPrice.max
 
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-      document.removeEventListener("keydown", handleEsc)
+    const q = new URLSearchParams()
+    if (pid)  q.set("platformId", pid)
+    cats.forEach(id => q.append("categoryIds", id))
+    if (min)  q.set("minPrice", min)
+    if (max)  q.set("maxPrice", max)
+
+    const qs = q.toString()
+    if (pathname === "/products") {
+      router.replace(`/products${qs ? `?${qs}` : ""}`, { scroll: false })
+    } else {
+      router.push(`/products${qs ? `?${qs}` : ""}`)
     }
+  }, [pathname, router, platformId, categoryIds, appliedPrice])
+
+  function selectPlatform(id: string) {
+    const next = id === platformId ? "" : id
+    setPlatformId(next)
+    navigate({ platformId: next })
+  }
+
+  const toggleCategory = useCallback((id: string) => {
+    setCategoryIds(prev => {
+      const next = prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
+      navigate({ categoryIds: next })
+      return next
+    })
+  }, [navigate])
+
+  function applyPrice() {
+    setAppliedPrice({ ...priceInputs })
+    navigate({ minPrice: priceInputs.min, maxPrice: priceInputs.max })
+  }
+
+  function clearFilters() {
+    setPlatformId(""); setCategoryIds([])
+    setPriceInputs({ min: "", max: "" }); setAppliedPrice({ min: "", max: "" })
+    if (pathname === "/products") router.replace("/products", { scroll: false })
+  }
+
+  // search nav
+  function goToResult(p: Product) {
+    setSearch(""); setSearchFocused(false)
+    router.push(`/products/${p.slug ?? p.id}`)
+  }
+  function submitSearch(e: React.FormEvent) {
+    e.preventDefault()
+    if (!search.trim()) return
+    router.push(`/products?searchWord=${encodeURIComponent(search.trim())}`)
+    setSearch(""); setSearchFocused(false)
+  }
+
+  // click-outside / scroll
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) setUserMenuOpen(false)
+      if (searchRef.current   && !searchRef.current.contains(e.target as Node))   setSearchFocused(false)
+    }
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") { setUserMenuOpen(false); setSearchFocused(false) } }
+    document.addEventListener("mousedown", h)
+    document.addEventListener("keydown", esc)
+    return () => { document.removeEventListener("mousedown", h); document.removeEventListener("keydown", esc) }
   }, [])
 
-  // Scroll effects
   useEffect(() => {
-    const handleScroll = () => {
-      const currentY = window.scrollY
-
-      // shrink background
-      setScrolled(currentY > 40)
-
-      // Always show when near top
-      if (currentY < 80) {
-        setShowLowerNav(true)
-      }
-      // Hide when scrolling down
-      else if (currentY > lastScrollY.current) {
-        setShowLowerNav(false)
-      }
-      // Show when scrolling up
-      else {
-        setShowLowerNav(true)
-      }
-
-      lastScrollY.current = currentY
-    }
-
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
+    const h = () => setScrolled(window.scrollY > 40)
+    window.addEventListener("scroll", h)
+    return () => window.removeEventListener("scroll", h)
   }, [])
-
-  // Search dropdown
-  useEffect(() => {
-    if (!search) {
-      setResults([])
-      return
-    }
-
-    const timeout = setTimeout(() => {
-      setResults([
-        { id: 1, title: "God of War Ragnarok" },
-        { id: 2, title: "Spider-Man 2" },
-        { id: 3, title: "Final Fantasy XVI" },
-      ])
-    }, 300)
-
-    return () => clearTimeout(timeout)
-  }, [search])
 
   if (loading) return null
 
+  const hasFilters = !!platformId || categoryIds.length > 0 || !!appliedPrice.min || !!appliedPrice.max
+  const priceLabel =
+    appliedPrice.min && appliedPrice.max ? `$${appliedPrice.min}–$${appliedPrice.max}`
+    : appliedPrice.min ? `≥$${appliedPrice.min}`
+    : appliedPrice.max ? `≤$${appliedPrice.max}`
+    : "Price"
+
   return (
-    <header
-      onMouseEnter={() => setHoveringTop(true)}
-      onMouseLeave={() => setHoveringTop(false)}
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-500
-        ${scrolled
-          ? "backdrop-blur-xl bg-black/80"
-          : "bg-[#2d2a5a]"
-        }`}
-    >
-      {/* Top Glow Line */}
-      <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute bottom-0 w-full h-full 
-            bg-[linear-gradient(to_right,rgba(0,255,255,0.05)_1px,transparent_1px),
-                linear-gradient(to_bottom,rgba(0,255,255,0.05)_1px,transparent_1px)]
-            bg-[size:40px_40px]
-            animate-grid-move" />
+    <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-500
+      ${scrolled ? "backdrop-blur-xl bg-black/85" : "bg-[#1a1730]"}`}>
+
+      {/* subtle grid texture */}
+      <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none opacity-40">
+        <div className="absolute inset-0
+          bg-[linear-gradient(to_right,rgba(139,92,246,0.06)_1px,transparent_1px),
+              linear-gradient(to_bottom,rgba(139,92,246,0.06)_1px,transparent_1px)]
+          bg-[size:40px_40px]" />
       </div>
 
-      {/* ================= TOP ROW ================= */}
-      <div
-        className="flex items-center justify-between px-8 py-4"
-      >
+      {/* ── ROW 1: logo · search · actions ── */}
+      <div className="flex items-center gap-5 px-8 py-3.5">
 
-        {/* Logo + Tagline */}
-        <div className="flex items-center gap-6">
-          <Link
-            href="/"
-            className="text-2xl font-extrabold text-white tracking-wider"
-          >
-            ArcadeZenter
-          </Link>
-
-          <span className="hidden lg:block text-sm text-gray-300">
-            PAY LESS. GAME MORE.
-          </span>
-        </div>
+        {/* Logo */}
+        <Link href="/" className="flex-shrink-0 text-xl font-bold text-white tracking-tight">
+          Arcade<span className="text-purple-400">Zenter</span>
+        </Link>
 
         {/* Search */}
-        <div className="flex-1 max-w-xl mx-10 hidden md:block">
-          <div className="relative w-full">
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by title..."
-              className="w-full rounded-full bg-white/90 pl-12 pr-5 py-2 text-black"
-            />
+        <div ref={searchRef} className="flex-1 max-w-2xl mx-4 relative">
+          <form onSubmit={submitSearch}>
+            <div className="relative">
+              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                placeholder="Search games…"
+                className="w-full bg-white/10 border border-white/15 rounded-lg
+                  pl-9 pr-9 py-2 text-sm text-white placeholder-gray-400
+                  focus:outline-none focus:border-purple-500/60 transition"
+              />
+              {search && (
+                <button type="button" onClick={() => setSearch("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition">
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+          </form>
 
-            {results.length > 0 && (
-              <div className="absolute top-full mt-3 w-full 
-                              bg-black/95 border border-cyan-400/30
-                              rounded-xl p-4 shadow-xl z-[999]">
-                {results.map((item) => (
-                  <div
-                    key={item.id}
-                    className="py-2 hover:text-cyan-300 cursor-pointer"
-                  >
-                    {item.title}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* live search dropdown */}
+          {searchFocused && debouncedSearch.trim() && (
+            <div className="absolute top-full mt-2 w-full rounded-xl border border-white/10
+              bg-[#1a1730]/98 backdrop-blur-md shadow-2xl shadow-black/60 z-[999] overflow-hidden">
+              {searchLoading ? (
+                <div className="px-4 py-3 text-xs text-gray-400 animate-pulse">Searching…</div>
+              ) : searchResults?.length ? (
+                searchResults.map(item => (
+                  <button key={item.id} type="button" onMouseDown={() => goToResult(item)}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition text-left">
+                    {item.media?.[0]?.url && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={item.media[0].url} alt="" className="w-9 h-9 rounded-md object-cover flex-shrink-0" />
+                    )}
+                    <div>
+                      <p className="text-sm text-white leading-tight">{item.title}</p>
+                      {item.platform?.name && <p className="text-xs text-gray-400 mt-0.5">{item.platform.name}</p>}
+                    </div>
+                  </button>
+                ))
+              ) : (
+                <div className="px-4 py-3 text-xs text-gray-400">
+                  No results for &ldquo;{debouncedSearch}&rdquo;
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Right Icons */}
-        <div className="flex items-center gap-6 text-white text-sm">
+        {/* Right actions */}
+        <div className="flex items-center gap-5 flex-shrink-0 ml-auto text-gray-200">
 
+          {/* Currency */}
           <div className="relative">
-            <button onClick={() => setLangOpen(!langOpen)}>
-              {currency} ▼
+            <button onClick={() => setLangOpen(v => !v)}
+              className="flex items-center gap-1 text-sm hover:text-white transition">
+              {currency}
+              <ChevronDown size={12} />
             </button>
-
             {langOpen && (
-              <div className="absolute right-0 mt-3 w-32 bg-black border border-cyan-400/40 rounded-lg p-2 z-[999]">
-                {currencies.map((c) => (
-                  <div
-                    key={c.currency}
-                    onClick={() => {
-                      setCurrency(c.region, c.currency)
-                      setLangOpen(false)
-                    }}
-                    className="hover:text-cyan-300 cursor-pointer"
-                  >
+              <div className="absolute right-0 mt-3 w-28 bg-[#1a1730] border border-white/15 rounded-xl p-1.5 z-[999] shadow-xl">
+                {currencies.map(c => (
+                  <button key={c.currency} type="button"
+                    onClick={() => { setCurrency(c.region, c.currency); setLangOpen(false) }}
+                    className={`w-full text-left px-3 py-1.5 rounded-lg text-sm transition
+                      ${currency === c.currency ? "text-purple-300 bg-purple-500/10" : "text-gray-300 hover:text-white hover:bg-white/5"}`}>
                     {c.currency}
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
           </div>
 
-          <Heart className="hover:text-fuchsia-400 cursor-pointer transition" />
+          <div className="w-px h-4 bg-white/10" />
 
           {/* User */}
           {!user ? (
-            <Link href="/login">
-              <User className="hover:text-fuchsia-400 transition" />
+            <Link href="/login" className="hover:text-white transition">
+              <User size={19} />
             </Link>
           ) : (
-            <div className="relative" ref={menuRef}>
-              <button onClick={() => setOpen((prev) => !prev)}>
-                <img
-                  src={
-                    user.profileImage ||
-                    `https://ui-avatars.com/api/?name=${user.email}`
-                  }
-                  className="w-9 h-9 rounded-full border border-cyan-400/50"
-                />
+            <div className="relative" ref={userMenuRef}>
+              <button onClick={() => setUserMenuOpen(v => !v)}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={user.profileImage || `https://ui-avatars.com/api/?name=${user.email}`}
+                  className="w-8 h-8 rounded-full border border-purple-500/40" alt="avatar" />
               </button>
-
-              {open && (
-                <div className="absolute right-0 mt-3 w-48 z-50
-                                backdrop-blur-xl bg-black/90
-                                border border-cyan-400/40
-                                rounded-xl shadow-lg overflow-hidden">
-                  <Link
-                    href="/profile"
-                    onClick={() => setOpen(false)}
-                    className="block px-4 py-3 hover:bg-cyan-400/10"
-                  >
-                    Profile
+              {userMenuOpen && (
+                <div className="absolute right-0 mt-3 w-48 z-50 bg-[#1a1730] border border-white/10 rounded-xl shadow-xl overflow-hidden">
+                  <Link href="/profile"        onClick={() => setUserMenuOpen(false)} className="block px-4 py-2.5 text-sm text-gray-200 hover:bg-white/5 hover:text-white transition">Profile</Link>
+                  <Link href="/orders"         onClick={() => setUserMenuOpen(false)} className="block px-4 py-2.5 text-sm text-gray-200 hover:bg-white/5 hover:text-white transition">Orders</Link>
+                  <Link href="/support/tickets" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-200 hover:bg-white/5 hover:text-white transition">
+                    <Ticket size={13} className="opacity-60" /> My Tickets
                   </Link>
-
-                  <Link
-                    href="/orders"
-                    onClick={() => setOpen(false)}
-                    className="block px-4 py-3 hover:bg-cyan-400/10"
-                  >
-                    Orders
-                  </Link>
-
-                  <Link
-                    href="/support/tickets"
-                    onClick={() => setOpen(false)}
-                    className="flex items-center gap-2 px-4 py-3 hover:bg-cyan-400/10"
-                  >
-                    <Ticket size={14} className="opacity-60" />
-                    My Tickets
-                  </Link>
-
-                  <Link
-                    href="/support"
-                    onClick={() => setOpen(false)}
-                    className="block px-4 py-3 hover:bg-cyan-400/10"
-                  >
-                    New Ticket
-                  </Link>
-
-                  <button
-                    onClick={() => {
-                      logout()
-                      setOpen(false)
-                    }}
-                    className="w-full text-left px-4 py-3 hover:bg-fuchsia-500/20 flex items-center gap-2"
-                  >
-                    <LogOut size={16} />
-                    Logout
+                  <Link href="/support"        onClick={() => setUserMenuOpen(false)} className="block px-4 py-2.5 text-sm text-gray-200 hover:bg-white/5 hover:text-white transition">New Ticket</Link>
+                  <div className="border-t border-white/10 mx-2 my-1" />
+                  <button onClick={() => { logout(); setUserMenuOpen(false) }}
+                    className="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-red-400 flex items-center gap-2 transition">
+                    <LogOut size={14} /> Logout
                   </button>
                 </div>
               )}
@@ -305,12 +384,11 @@ export default function Navbar() {
 
           {/* Cart */}
           <div className="relative">
-            <Link href="/cart" id="cart-icon">
-              <ShoppingCart className="hover:text-fuchsia-400 transition" />
+            <Link href="/cart" id="cart-icon" className="hover:text-white transition">
+              <ShoppingCart size={19} />
             </Link>
-
             {totalItems > 0 && (
-              <span className="absolute -top-2 -right-2 bg-fuchsia-500 text-black text-xs font-bold px-2 py-0.5 rounded-full animate-bounce">
+              <span className="absolute -top-2 -right-2.5 bg-purple-500 text-white text-[10px] font-semibold px-1.5 py-px rounded-full leading-tight">
                 {totalItems}
               </span>
             )}
@@ -318,61 +396,121 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* SECOND ROW */}
-      <div
-        className={`transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]
-          ${showLowerNav || hoveringTop
-            ? "max-h-[80px] opacity-100"
-            : "max-h-0 opacity-0"
-          }`}
-      >
-        <div className="flex items-center justify-between px-8 py-3 border-t border-white/10 text-white text-sm">
-          
-          <div className="flex items-center gap-8 font-medium relative">
-            {menus.map((menu) => (
-              <div
-                key={menu.label}
-                className="relative group"
-                onMouseLeave={() => {
-                  timeoutRef.current = setTimeout(() => {
-                    setActiveMenu(null)
-                  }, 150)
-                }}
+      {/* ── ROW 2: platform tabs · genre · price · nav links ── */}
+      <div className="flex items-center gap-2 px-8 py-2 border-t border-white/[0.07]">
 
-                onMouseEnter={() => {
-                  if (timeoutRef.current) clearTimeout(timeoutRef.current)
-                  setActiveMenu(menu.label)
-                }}
-              >
-                <span className="nav-link cursor-pointer hover:text-cyan-300 transition">
-                  {menu.label} ▼
+        {/* Platform tabs */}
+        <div className="flex items-center gap-1">
+          {/* All tab */}
+          <button type="button" onClick={() => selectPlatform("")}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition
+              ${!platformId
+                ? "bg-purple-600/20 text-purple-300 border border-purple-500/40"
+                : "text-gray-300 hover:text-white hover:bg-white/5 border border-transparent"}`}>
+            All
+          </button>
+
+          {platforms?.map(p => (
+            <button key={p.id} type="button" onClick={() => selectPlatform(p.id)}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition
+                ${platformId === p.id
+                  ? "bg-purple-600/20 text-purple-300 border border-purple-500/40"
+                  : "text-gray-300 hover:text-white hover:bg-white/5 border border-transparent"}`}>
+              {p.name}
+            </button>
+          ))}
+        </div>
+
+        {/* Separator */}
+        <div className="w-px h-4 bg-white/10 mx-1" />
+
+        {/* Genre dropdown */}
+        <Dropdown
+          minWidth="min-w-[220px]"
+          trigger={open => (
+            <FilterBtn
+              label={categoryIds.length ? `Genre (${categoryIds.length})` : "Genre"}
+              active={categoryIds.length > 0}
+              onClear={() => { setCategoryIds([]); navigate({ categoryIds: [] }) }}
+              open={open}
+            />
+          )}
+        >
+          {categories?.map(c => {
+            const checked = categoryIds.includes(c.id)
+            return (
+              <button key={c.id} type="button" onClick={() => toggleCategory(c.id)}
+                className="w-full flex items-center gap-3 px-4 py-2 text-xs text-gray-300 hover:text-white hover:bg-white/5 transition">
+                <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center flex-shrink-0 transition
+                  ${checked ? "bg-purple-500 border-purple-500" : "border-white/20"}`}>
+                  {checked && (
+                    <svg width="8" height="7" viewBox="0 0 10 8" fill="none">
+                      <path d="M1 4l3 3 5-6" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
                 </span>
+                {c.name}
+              </button>
+            )
+          })}
+        </Dropdown>
 
-                {activeMenu === menu.label && (
-                  <div className="absolute left-0 top-full pt-4">
-                    <MegaMenu title={menu.label} items={menu.items} />
-                  </div>
-                )}
-              </div>
-            ))}
-
-            <span className="nav-link cursor-pointer hover:text-cyan-300">
-              GIFT CARDS
-            </span>
+        {/* Price dropdown */}
+        <Dropdown
+          minWidth="min-w-[210px]"
+          trigger={open => (
+            <FilterBtn
+              label={priceLabel}
+              active={!!(appliedPrice.min || appliedPrice.max)}
+              onClear={() => {
+                setPriceInputs({ min: "", max: "" })
+                setAppliedPrice({ min: "", max: "" })
+                navigate({ minPrice: "", maxPrice: "" })
+              }}
+              open={open}
+            />
+          )}
+        >
+          <div className="px-4 py-3 space-y-2.5">
+            <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold">Price range</p>
+            <div className="flex items-center gap-2">
+              {(["min", "max"] as const).map(k => (
+                <div key={k} className="relative flex-1">
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
+                  <input type="number" min={0} placeholder={k === "min" ? "Min" : "Max"}
+                    value={priceInputs[k]}
+                    onChange={e => setPriceInputs(p => ({ ...p, [k]: e.target.value }))}
+                    className="w-full pl-5 pr-2 py-1.5 rounded-lg text-xs bg-white/8 border border-white/15
+                      text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/60 transition" />
+                </div>
+              ))}
+            </div>
+            <button type="button" onClick={applyPrice}
+              className="w-full py-1.5 rounded-lg text-xs font-semibold bg-purple-600 hover:bg-purple-500 text-white transition">
+              Apply
+            </button>
           </div>
+        </Dropdown>
 
-          <div className="flex items-center gap-8 font-semibold">
-            <Link href="/products" className="nav-link hover:text-fuchsia-400">
-              DEALS
-            </Link>
-            <Link href="/products" className="nav-link hover:text-fuchsia-400">
-              LATEST GAMES
-            </Link>
-            <span className="nav-link hover:text-fuchsia-400 cursor-pointer">
-              PRE-ORDER
-            </span>
-          </div>
+        {/* Clear all */}
+        {hasFilters && (
+          <>
+            <div className="w-px h-4 bg-white/10 mx-1" />
+            <button type="button" onClick={clearFilters}
+              className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition">
+              <X size={11} /> Clear
+            </button>
+          </>
+        )}
 
+        {/* Right nav links */}
+        <div className="ml-auto flex items-center gap-5">
+          <Link href="/articles" className="text-xs text-gray-300 hover:text-white transition font-medium">
+            News &amp; Articles
+          </Link>
+          <Link href="/products" className="text-xs text-purple-400 hover:text-purple-300 transition font-medium">
+            Browse all →
+          </Link>
         </div>
       </div>
     </header>
