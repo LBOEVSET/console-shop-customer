@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Console Shop — Customer Storefront
 
-## Getting Started
+Customer-facing web app for the Console Shop platform, built with Next.js.
 
-First, run the development server:
+## Live URL
+
+**[https://console-shop-web.lboevset.com](https://console-shop-web.lboevset.com)**
+
+## Tech Stack
+
+- **Framework:** Next.js (App Router, TypeScript)
+- **Styling:** Tailwind CSS
+- **State:** Zustand
+- **Data fetching:** TanStack Query
+- **Payments:** Omise.js
+- **Realtime:** Socket.IO client
+- **Deployment:** GKE (Google Kubernetes Engine), standalone output
+
+## Local Development
 
 ```bash
+# Install dependencies
+npm install
+
+# Start dev server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3022](http://localhost:3022).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Requires a `.env.local` with:
+```
+NEXT_PUBLIC_API_URL=http://localhost:3012/api/v1
+NEXT_PUBLIC_SOCKET_URL=http://localhost:3012
+NEXT_PUBLIC_OMISE_PUBLIC_KEY=pkey_...
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Deployment
 
-## Learn More
+Pushing to the `dev` branch triggers GitHub Actions to build and deploy to GKE automatically.
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See `console-shop-backend-config` for all Kubernetes manifests and the full deployment guide.
