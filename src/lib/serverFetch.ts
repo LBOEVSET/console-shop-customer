@@ -26,8 +26,11 @@ export async function serverFetch(path: string) {
   )
 
   if (!res.ok) {
+    // Log the error server-side but return null so the page can render with
+    // empty data rather than propagating a 500 to the liveness probe / user.
     const text = await res.text()
-    throw new Error(`serverFetch failed [${res.status}] ${path}: ${text}`)
+    console.error(`serverFetch failed [${res.status}] ${path}: ${text}`)
+    return null
   }
 
   return res.json()
