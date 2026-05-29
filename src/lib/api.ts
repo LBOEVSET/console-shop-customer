@@ -1,11 +1,19 @@
 import axios from "axios"
 import { initGuest } from "@/lib/guest"
+import { getConfig } from "@/lib/config"
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? ""
-
+// baseURL is resolved lazily on first request via the request interceptor
+// so it comes from the runtime /api/config response, not a build-time var.
 const api = axios.create({
-  baseURL: BASE,
   withCredentials: true,
+})
+
+api.interceptors.request.use(async (config) => {
+  if (!config.baseURL) {
+    const { apiUrl } = await getConfig()
+    config.baseURL = apiUrl
+  }
+  return config
 })
 
 let isRefreshing = false
@@ -23,7 +31,8 @@ let refreshPromise: Promise<void> | null = null
  */
 async function attemptRefresh(): Promise<boolean> {
   try {
-    const res = await fetch(`${BASE}/auth/refresh`, {
+    const { apiUrl } = await getConfig()
+    const res = await fetch(`${apiUrl}/auth/refresh`, {
       method: "POST",
       credentials: "include",
     })
