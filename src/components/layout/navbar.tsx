@@ -284,7 +284,13 @@ function NavFilterRow() {
       {/* Right links */}
       <div className="ml-auto flex items-center gap-5">
         <Link href="/articles" className="text-xs text-gray-300 hover:text-white transition font-medium">
-          News &amp; Articles
+          News
+        </Link>
+        <Link href="/events" className="text-xs text-gray-300 hover:text-white transition font-medium">
+          Events
+        </Link>
+        <Link href="/merchandise" className="text-xs text-gray-300 hover:text-white transition font-medium">
+          Merch
         </Link>
         <Link href="/products" className="text-xs text-purple-400 hover:text-purple-300 transition font-medium">
           Browse all →

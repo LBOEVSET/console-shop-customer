@@ -4,16 +4,25 @@ import Link from "next/link"
 import Image from "next/image"
 import { Product } from "@/types/product"
 import AddToCartButton from "@/components/cart/AddToCartButton"
-import { useRef } from "react"
 import { useCurrencyStore } from "@/store/currency.store"
 import { getProductPrice } from "@/lib/getProductPrice"
+import { useTrack } from "@/hooks/useTrack"
+import { useAuthStore } from "@/store/auth.store"
 
 export default function ProductCard({
   product,
 }: {
   product: Product
 }) {
-  const imageRef = useRef<HTMLDivElement>(null)
+  const { user } = useAuthStore()
+  const { ref: trackRef, trackClick } = useTrack({
+    entityType: "PRODUCT",
+    entityId:   product.id,
+    userId:     user?.id,
+  })
+
+  // imageRef is the same element — forward both refs
+  const imageRef = trackRef as React.RefObject<HTMLDivElement>
 
   const { region, currency } = useCurrencyStore()
   const priceData = getProductPrice(product, region)
@@ -37,15 +46,16 @@ export default function ProductCard({
 
   return (
     <div
+      ref={trackRef}
       className="group flex flex-col justify-between
-                 bg-black border border-cyan-400/30 
+                 bg-black border border-cyan-400/30
                  rounded-2xl overflow-hidden
                  transition-all duration-300
                  hover:border-cyan-400
                  hover:shadow-[0_0_30px_rgba(34,211,238,0.4)]"
     >
       {/* Clickable Area */}
-      <Link href={`/products/${product.id}`} className="flex-1">
+      <Link href={`/products/${product.id}`} className="flex-1" onClick={trackClick}>
         
         {/* Image */}
         <div

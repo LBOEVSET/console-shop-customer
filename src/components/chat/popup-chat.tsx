@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState } from "react"
 import { connectSocket } from "@/lib/socket"
-import { initGuest } from "@/lib/guest"
-import { X, MessageCircle } from "lucide-react"
+import { useAuthStore } from "@/store/auth.store"
+import { X, MessageCircle, Send, LogIn } from "lucide-react"
+import api from "@/lib/api"
+import Link from "next/link"
 
 interface Message {
   message: string
@@ -12,156 +14,228 @@ interface Message {
 }
 
 export default function ChatWidget() {
-  const [open, setOpen] = useState(false)
-  const [messages, setMessages] = useState<Message[]>([])
-  const [input, setInput] = useState("")
-  const [connected, setConnected] = useState(false)
+  const { user, loading } = useAuthStore()
 
-  const socketRef = useRef<any>(null)
+  const [open,      setOpen]      = useState(false)
+  const [messages,  setMessages]  = useState<Message[]>([])
+  const [input,     setInput]     = useState("")
+  const [connected, setConnected] = useState(false)
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [error,     setError]     = useState<string | null>(null)
+
+  const socketRef    = useRef<ReturnType<typeof connectSocket> | null>(null)
+  const sessionIdRef = useRef<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const accessToken =
-    typeof window !== "undefined"
-      ? localStorage.getItem("accessToken")
-      : null
+  // Keep ref in sync so socket callbacks always have the current sessionId
+  useEffect(() => { sessionIdRef.current = sessionId }, [sessionId])
 
+  // Connect (or disconnect) when the widget is opened/closed
   useEffect(() => {
-    if (!open) return
+    if (!open || !user) return
 
-    const initConnection = async () => {
-      let token = accessToken
-      let guestId = null
+    let cancelled = false
 
-      if (!token) {
-        await initGuest()
+    const init = async () => {
+      try {
+        setError(null)
+
+        // 1. Get a readable copy of the token for the WS handshake
+        //    (the real token lives in an httpOnly cookie on the proxy origin)
+        const { data: tokenData } = await api.get("/auth/ws-token")
+        if (cancelled) return
+        const wsToken: string = tokenData?.token ?? tokenData?.data?.token
+
+        // 2. Create a chat session via REST
+        const { data: sessionData } = await api.post("/chat/start")
+        if (cancelled) return
+        const sid: string = sessionData?.data?.id ?? sessionData?.id
+        setSessionId(sid)
+        sessionIdRef.current = sid
+
+        // 3. Connect socket with the real JWT
+        const socket = connectSocket({ token: wsToken })
+        socketRef.current = socket
+
+        socket.on("connect", () => {
+          setConnected(true)
+          // 4. Join the session room on the gateway
+          socket.emit("join", { sessionId: sid })
+        })
+
+        socket.on("disconnect", () => setConnected(false))
+
+        // 5. Gateway emits "newMessage" when anyone posts
+        socket.on("newMessage", (msg: { message: string; sender: string; createdAt: string }) => {
+          if (msg.sender !== user.id) {
+            setMessages(prev => [...prev, {
+              message: msg.message,
+              sender: "ADMIN",
+              createdAt: msg.createdAt,
+            }])
+          }
+        })
+
+        socket.on("closed", () => {
+          setConnected(false)
+          setMessages(prev => [
+            ...prev,
+            { message: "Support has closed this session.", sender: "ADMIN" },
+          ])
+        })
+
+        socket.on("connect_error", (err: Error) => {
+          setError(`Connection failed: ${err.message}`)
+          setConnected(false)
+        })
+
+      } catch (err: any) {
+        if (!cancelled) setError(err?.response?.data?.message ?? "Could not start chat. Please try again.")
       }
-
-      const socket = connectSocket({
-        token,
-        guestId
-      })
-
-      socketRef.current = socket
-
-      socket.on("connect", () => {
-        setConnected(true)
-        socket.emit("create-session")
-      })
-
-      socket.on("disconnect", () => {
-        setConnected(false)
-      })
-
-      socket.on("receive-message", (msg: Message) => {
-        setMessages((prev) => [...prev, msg])
-      })
     }
 
-    initConnection()
+    init()
 
     return () => {
+      cancelled = true
       socketRef.current?.disconnect()
       socketRef.current = null
       setConnected(false)
+      setSessionId(null)
     }
-  }, [open])
+  }, [open, user])
 
+  // Auto-scroll to latest message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
   const sendMessage = () => {
-    if (!socketRef.current || !input.trim()) return
+    const sid = sessionIdRef.current
+    if (!socketRef.current || !input.trim() || !sid) return
 
-    socketRef.current.emit("send-message", { message: input })
-
-    setMessages((prev) => [
+    // Optimistically show own message immediately
+    const text = input.trim()
+    setMessages(prev => [
       ...prev,
-      { message: input, sender: "USER", createdAt: new Date().toISOString() }
+      { message: text, sender: "USER", createdAt: new Date().toISOString() },
     ])
-
     setInput("")
+
+    // 6. Gateway listens to "sendMessage" with { sessionId, message }
+    socketRef.current.emit("sendMessage", { sessionId: sid, message: text })
   }
+
+  if (loading) return null
 
   return (
     <>
+      {/* Trigger button */}
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed bottom-6 right-6 bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-full shadow-xl transition-all"
+          className="fixed bottom-6 right-6 bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-full shadow-xl transition-all z-50"
         >
           <MessageCircle size={24} />
         </button>
       )}
 
+      {/* Chat window */}
       {open && (
-        <div className="fixed bottom-6 right-6 w-96 h-[520px] bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-zinc-200 dark:border-zinc-800">
+        <div className="fixed bottom-6 right-6 w-[360px] h-[520px] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-white/10 bg-[#1a1730] z-50">
 
-          <div className="flex items-center justify-between px-4 py-3 bg-indigo-600 text-white">
-            <div className="flex flex-col">
-              <h3 className="font-semibold">Live Support</h3>
-              <span className="text-xs opacity-80">
-                {connected ? "Online" : "Connecting..."}
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-3 bg-indigo-600 text-white flex-shrink-0">
+            <div>
+              <h3 className="font-semibold text-sm">Live Support</h3>
+              <span className="text-xs opacity-75">
+                {!user ? "Sign in to chat" : connected ? "Online" : "Connecting…"}
               </span>
             </div>
-            <button onClick={() => setOpen(false)}>
-              <X size={20} />
+            <button onClick={() => setOpen(false)} className="hover:opacity-70 transition">
+              <X size={18} />
             </button>
           </div>
 
-          <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-zinc-50 dark:bg-zinc-950">
-            {messages.length === 0 && (
-              <div className="text-sm text-zinc-500 text-center mt-10">
-                👋 Start chatting with our support team
-              </div>
-            )}
-
-            {messages.map((msg, i) => (
-              <div
-                key={i}
-                className={`flex ${
-                  msg.sender === "USER"
-                    ? "justify-end"
-                    : "justify-start"
-                }`}
+          {/* Body */}
+          {!user ? (
+            /* Not logged in — prompt */
+            <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6 text-center">
+              <MessageCircle size={40} className="text-indigo-400 opacity-50" />
+              <p className="text-sm text-gray-300">Sign in to chat with our support team.</p>
+              <Link
+                href="/login"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition"
               >
-                <div
-                  className={`px-4 py-2 rounded-2xl max-w-[75%] text-sm shadow ${
-                    msg.sender === "USER"
-                      ? "bg-indigo-600 text-white rounded-br-none"
-                      : "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white rounded-bl-none"
-                  }`}
-                >
-                  <div>{msg.message}</div>
-                  {msg.createdAt && (
-                    <div className="text-[10px] opacity-60 mt-1 text-right">
-                      {new Date(msg.createdAt).toLocaleTimeString()}
-                    </div>
-                  )}
+                <LogIn size={14} /> Sign In
+              </Link>
+            </div>
+          ) : error ? (
+            /* Connection error */
+            <div className="flex-1 flex flex-col items-center justify-center gap-3 p-6 text-center">
+              <p className="text-sm text-red-400">{error}</p>
+              <button
+                onClick={() => { setError(null); setOpen(false); setTimeout(() => setOpen(true), 100) }}
+                className="text-xs text-indigo-400 hover:text-indigo-300 underline"
+              >
+                Try again
+              </button>
+            </div>
+          ) : (
+            /* Messages */
+            <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-[#111020]">
+              {messages.length === 0 && (
+                <div className="text-xs text-gray-500 text-center mt-8">
+                  {connected
+                    ? "👋 Connected! How can we help you today?"
+                    : "Connecting to support…"}
                 </div>
-              </div>
-            ))}
+              )}
 
-            <div ref={messagesEndRef} />
-          </div>
+              {messages.map((msg, i) => (
+                <div key={i} className={`flex ${msg.sender === "USER" ? "justify-end" : "justify-start"}`}>
+                  <div className={`px-3 py-2 rounded-2xl max-w-[78%] text-sm shadow
+                    ${msg.sender === "USER"
+                      ? "bg-indigo-600 text-white rounded-br-none"
+                      : "bg-white/10 text-gray-100 rounded-bl-none"}`}>
+                    <p>{msg.message}</p>
+                    {msg.createdAt && (
+                      <p className="text-[10px] opacity-50 mt-1 text-right">
+                        {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
 
-          <div className="p-3 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex gap-2">
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              placeholder="Type a message..."
-              className="flex-1 px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-zinc-800 dark:border-zinc-700"
-              disabled={!connected}
-            />
-            <button
-              onClick={sendMessage}
-              disabled={!connected}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm transition disabled:opacity-50"
-            >
-              Send
-            </button>
-          </div>
+              <div ref={messagesEndRef} />
+            </div>
+          )}
+
+          {/* Input */}
+          {user && !error && (
+            <div className="p-3 border-t border-white/10 bg-[#1a1730] flex gap-2 flex-shrink-0">
+              <input
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && sendMessage()}
+                placeholder={connected ? "Type a message…" : "Connecting…"}
+                disabled={!connected}
+                className="flex-1 px-3 py-2 text-sm rounded-lg bg-white/8 border border-white/15
+                  text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/60
+                  transition disabled:opacity-40"
+              />
+              <button
+                onClick={sendMessage}
+                disabled={!connected || !input.trim()}
+                className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm
+                  transition disabled:opacity-40 flex items-center gap-1"
+              >
+                <Send size={14} />
+              </button>
+            </div>
+          )}
         </div>
       )}
     </>
