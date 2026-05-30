@@ -210,25 +210,33 @@ export default function EventCheckoutPage() {
           onPayCard={async (card) => {
             try {
               setCardLoading(true)
+              if (!(window as any).Omise) {
+                setPaymentStatus("FAILED"); return
+              }
               const omisePublicKey = process.env.NEXT_PUBLIC_OMISE_PUBLIC_KEY || ""
-              const OmiseCard = (window as any).OmiseCard
-              OmiseCard.configure({ publicKey: omisePublicKey })
-              const token = await new Promise<string>((resolve, reject) => {
-                OmiseCard.createToken("card", {
-                  name: card.name, number: card.number,
-                  expiration_month: card.expMonth, expiration_year: `20${card.expYear}`,
-                  security_code: card.cvc,
-                }, (statusCode: number, response: any) => {
-                  if (statusCode === 200) resolve(response.id)
-                  else reject(new Error(response.message))
-                })
+              ;(window as any).Omise.setPublicKey(omisePublicKey)
+              ;(window as any).Omise.createToken("card", {
+                name: card.name,
+                number: card.number,
+                expiration_month: card.expMonth,
+                expiration_year: card.expYear,
+                security_code: card.cvc,
+              }, async (_statusCode: number, response: any) => {
+                if (response.object === "error") {
+                  setPaymentStatus("FAILED"); setCardLoading(false); return
+                }
+                try {
+                  await api.post("/payments/card", { orderId, token: response.id })
+                  setPaymentStatus("SUCCESS")
+                  setTimeout(() => { setShowModal(false); router.push(`/orders/${orderId}`) }, 1500)
+                } catch {
+                  setPaymentStatus("FAILED")
+                } finally {
+                  setCardLoading(false)
+                }
               })
-              await api.post(`/payments/${orderId}/card`, { token })
-              setPaymentStatus("SUCCESS")
-              setTimeout(() => { setShowModal(false); router.push(`/orders/${orderId}`) }, 1500)
             } catch {
               setPaymentStatus("FAILED")
-            } finally {
               setCardLoading(false)
             }
           }}
