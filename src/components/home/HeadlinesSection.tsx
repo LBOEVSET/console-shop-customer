@@ -29,7 +29,7 @@ export default function HeadlinesSection(
         )}
       </div>
 
-      <div className="grid md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {articles.map((article: Article) => (
           <ArticleCard key={article.id} article={article} />
         ))}

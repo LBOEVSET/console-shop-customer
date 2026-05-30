@@ -33,10 +33,10 @@ export default function CartPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto py-12 px-4 grid lg:grid-cols-3 gap-10">
+    <div className="max-w-6xl mx-auto py-12 px-4 flex flex-col lg:flex-row gap-10">
 
       {/* LEFT - Cart Items */}
-      <div className="lg:col-span-2 space-y-6">
+      <div className="w-full lg:flex-[2] space-y-6">
         <h1 className="text-3xl font-bold">Shopping Cart</h1>
 
         {items.map((item) => {
@@ -123,7 +123,7 @@ export default function CartPage() {
       </div>
 
       {/* RIGHT - Order Summary */}
-      <div className="sticky top-24 h-fit p-6 rounded-2xl border bg-white dark:bg-zinc-900 shadow-lg space-y-6">
+      <div className="w-full lg:w-80 lg:flex-shrink-0 sticky top-24 h-fit p-6 rounded-2xl border bg-white dark:bg-zinc-900 shadow-lg space-y-6">
         <h2 className="text-xl font-bold">Order Summary</h2>
 
         <div className="flex justify-between text-gray-600">
