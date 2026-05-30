@@ -194,7 +194,7 @@ export default function ArcadeHero() {
   const [frame, setFrame] = useState(0)
   const [gameIndex] = useState(() => Math.floor(Math.random() * 3))
   const [blink, setBlink] = useState(true)
-  const rafRef = useRef<number>()
+  const rafRef = useRef<number | undefined>(undefined)
   const lastRef = useRef<number>(0)
 
   useEffect(() => {
