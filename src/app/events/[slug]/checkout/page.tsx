@@ -236,12 +236,6 @@ export default function EventCheckoutPage() {
         />
       )}
 
-      {showLoginModal && (
-        <LoginModal
-          onClose={() => setShowLoginModal(false)}
-          onSuccess={() => { setShowLoginModal(false); handleCheckout() }}
-        />
-      )}
     </main>
   )
 }
