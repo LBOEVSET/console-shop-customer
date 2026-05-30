@@ -42,7 +42,7 @@ export default function CartSidebar() {
 
             {items.map((item) => {
               const image =
-                item.product.media?.[0]?.url || "/placeholder.png"
+                item.product?.media?.[0]?.url || "/placeholder.png"
 
               return (
                 <div
@@ -52,7 +52,7 @@ export default function CartSidebar() {
                   <div className="relative w-16 h-16">
                     <Image
                       src={image}
-                      alt={item.product.title}
+                      alt={item.product?.title ?? ""}
                       fill
                       className="object-cover rounded-md"
                     />
@@ -60,7 +60,7 @@ export default function CartSidebar() {
 
                   <div className="flex-1">
                     <p className="font-semibold text-sm">
-                      {item.product.title}
+                      {item.product?.title}
                     </p>
 
                     <p className="text-xs text-gray-400">
@@ -68,7 +68,7 @@ export default function CartSidebar() {
                     </p>
 
                     <p className="text-cyan-400 font-bold">
-                      ${Number(item.product.price).toFixed(2)}
+                      ${Number(item.product?.price ?? 0).toFixed(2)}
                     </p>
                   </div>
 
