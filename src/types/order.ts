@@ -1,6 +1,14 @@
 export interface OrderItem {
-  productId: string
+  id?: string
+  title: string
   quantity: number
+  price: number
+  productId?: string | null
+  eventId?: string | null
+  product?: {
+    title: string
+    media: { type: string; url: string }[]
+  } | null
 }
 
 export interface Order {

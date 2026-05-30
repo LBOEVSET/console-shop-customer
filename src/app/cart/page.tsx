@@ -41,10 +41,10 @@ export default function CartPage() {
 
         {items.map((item) => {
           const image =
-            item.product.media?.find(m => m.type === "IMAGE")?.url ||
+            item.product?.media?.find(m => m.type === "IMAGE")?.url ||
             "/placeholder.png"
 
-          const price = Number(item.product.price)
+          const price = Number(item.product?.price ?? 0)
           const subtotal = price * item.quantity
 
           return (
@@ -56,7 +56,7 @@ export default function CartPage() {
               <div className="relative w-28 h-28 rounded-xl overflow-hidden">
                 <Image
                   src={image}
-                  alt={item.product.title}
+                  alt={item.product?.title ?? "Product"}
                   fill
                   className="object-cover"
                 />
@@ -67,7 +67,7 @@ export default function CartPage() {
 
                 <div>
                   <h2 className="text-lg font-semibold">
-                    {item.product.title}
+                    {item.product?.title ?? "Unknown Product"}
                   </h2>
 
                   <p className="text-sm text-gray-500 mt-1">

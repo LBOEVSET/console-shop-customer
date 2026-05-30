@@ -5,7 +5,7 @@ import { initGuest } from "@/lib/guest"
 export interface CartItem {
   productId: string
   quantity: number
-  product: {
+  product?: {
     id: string
     title: string
     price: string
