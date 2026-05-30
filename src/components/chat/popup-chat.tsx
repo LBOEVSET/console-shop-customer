@@ -23,7 +23,7 @@ export default function ChatWidget() {
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [error,     setError]     = useState<string | null>(null)
 
-  const socketRef    = useRef<ReturnType<typeof connectSocket> | null>(null)
+  const socketRef    = useRef<Awaited<ReturnType<typeof connectSocket>> | null>(null)
   const sessionIdRef = useRef<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
