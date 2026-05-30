@@ -189,7 +189,7 @@ const GAME_NAMES = ["SUPER MARIO", "BATTLE CITY", "PAC-MAN"]
 
 // ─── main hero section ────────────────────────────────────────────────────────
 
-export default function ArcadeHero() {
+export default function ArcadeBanner() {
   const [phase, setPhase] = useState<"idle" | "starting" | "playing">("idle")
   const [frame, setFrame] = useState(0)
   const [gameIndex] = useState(() => Math.floor(Math.random() * 3))

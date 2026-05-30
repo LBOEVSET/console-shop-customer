@@ -1,7 +1,7 @@
 import RetroGridBackground from "@/components/arcade/RetroGridBackground"
 import NeonCursor from "@/components/arcade/NeonCursor"
 import ArcadeTicker from "@/components/arcade/ArcadeTicker"
-import ArcadeHero from "@/components/arcade/ArcadeHero"
+import ArcadeBanner from "@/components/arcade/ArcadeBanner"
 import HeadlinesSection from "@/components/home/HeadlinesSection"
 import ProductSection from "@/components/home/ProductSection"
 import { serverFetch } from "@/lib/serverFetch"
@@ -21,7 +21,7 @@ export default async function HomePage() {
       <NeonCursor />
       <ArcadeTicker />
 
-      <ArcadeHero />
+      <ArcadeBanner />
 
       <HeadlinesSection 
         articles={articles.slice(0, 3)}
