@@ -39,7 +39,7 @@ export default function CheckoutPage() {
 
   const totalPrice = items.reduce(
     (sum, item) =>
-      sum + Number(item.product.price) * item.quantity,
+      sum + Number(item.product?.price ?? 0) * item.quantity,
     0
   )
 
