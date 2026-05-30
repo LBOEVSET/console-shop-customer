@@ -54,7 +54,7 @@ export default function ChatWidget() {
         sessionIdRef.current = sid
 
         // 3. Connect socket with the real JWT
-        const socket = connectSocket({ token: wsToken })
+        const socket = await connectSocket({ token: wsToken })
         socketRef.current = socket
 
         socket.on("connect", () => {
