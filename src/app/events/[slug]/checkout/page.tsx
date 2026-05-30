@@ -8,7 +8,6 @@ import { useAuthStore } from "@/store/auth.store"
 import Link from "next/link"
 import { ArrowLeft, CalendarDays, MapPin, Minus, Plus } from "lucide-react"
 import PaymentModal from "@/components/payment/PaymentModal"
-import LoginModal from "@/components/auth/LoginModal"
 
 type PaymentMethod = "CARD" | "PROMPTPAY"
 
@@ -25,7 +24,7 @@ export default function EventCheckoutPage() {
   const [qrCode,         setQrCode]         = useState<string | null>(null)
   const [showModal,      setShowModal]      = useState(false)
   const [paymentStatus,  setPaymentStatus]  = useState<"IDLE" | "WAITING" | "SUCCESS" | "FAILED">("IDLE")
-  const [showLoginModal, setShowLoginModal] = useState(false)
+  const [cardLoading,    setCardLoading]    = useState(false)
 
   const { data: event, isLoading } = useQuery({
     queryKey: ["event", slug],
@@ -40,7 +39,7 @@ export default function EventCheckoutPage() {
   const total   = event ? Number(event.price) * quantity : 0
 
   const handleCheckout = async () => {
-    if (!user) { setShowLoginModal(true); return }
+    if (!user) { router.push(`/login?redirect=/events/${slug}/checkout`); return }
 
     try {
       setLoading(true)
@@ -201,16 +200,37 @@ export default function EventCheckoutPage() {
         </p>
       </div>
 
-      {showModal && orderId && (
+      {showModal && (
         <PaymentModal
-          orderId={orderId}
+          open={showModal}
+          method={paymentMethod}
+          status={paymentStatus}
           qrCode={qrCode}
-          paymentMethod={paymentMethod}
-          paymentStatus={paymentStatus}
-          setPaymentStatus={setPaymentStatus}
-          onSuccess={() => {
-            setShowModal(false)
-            router.push(`/orders/${orderId}`)
+          cardLoading={cardLoading}
+          onPayCard={async (card) => {
+            try {
+              setCardLoading(true)
+              const omisePublicKey = process.env.NEXT_PUBLIC_OMISE_PUBLIC_KEY || ""
+              const OmiseCard = (window as any).OmiseCard
+              OmiseCard.configure({ publicKey: omisePublicKey })
+              const token = await new Promise<string>((resolve, reject) => {
+                OmiseCard.createToken("card", {
+                  name: card.name, number: card.number,
+                  expiration_month: card.expMonth, expiration_year: `20${card.expYear}`,
+                  security_code: card.cvc,
+                }, (statusCode: number, response: any) => {
+                  if (statusCode === 200) resolve(response.id)
+                  else reject(new Error(response.message))
+                })
+              })
+              await api.post(`/payments/${orderId}/card`, { token })
+              setPaymentStatus("SUCCESS")
+              setTimeout(() => { setShowModal(false); router.push(`/orders/${orderId}`) }, 1500)
+            } catch {
+              setPaymentStatus("FAILED")
+            } finally {
+              setCardLoading(false)
+            }
           }}
           onClose={() => setShowModal(false)}
         />
