@@ -134,13 +134,13 @@ export default function EventDetailPage() {
                 Sold Out
               </div>
             ) : (
-              <button
-                className="w-full py-3 rounded-xl text-sm font-bold
+              <Link href={`/events/${event.slug}/checkout`}
+                className="block w-full py-3 rounded-xl text-sm font-bold text-center
                   bg-gradient-to-r from-purple-600 to-fuchsia-600
                   hover:from-purple-500 hover:to-fuchsia-500
                   text-white transition-all shadow-lg shadow-purple-900/30">
                 {isFree ? "Register Now →" : "Buy Ticket →"}
-              </button>
+              </Link>
             )}
 
             <p className="text-[11px] text-gray-600 text-center">
