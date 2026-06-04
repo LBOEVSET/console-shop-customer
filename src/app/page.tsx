@@ -12,8 +12,8 @@ export default async function HomePage() {
     serverFetch("/products"),
   ])
 
-  const articles = articlesRes?.data ?? []
-  const products = productsRes?.data ?? []
+  const articles = articlesRes?.data?.data ?? articlesRes?.data ?? []
+  const products = productsRes?.data?.data ?? productsRes?.data ?? []
 
   return (
     <main className="relative text-white pt-2">
