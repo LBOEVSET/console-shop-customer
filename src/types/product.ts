@@ -24,6 +24,8 @@ export interface ProductPrice {
 }
 
 export interface Product {
+  price?: number
+  salePrice?: number
   id: string
   title: string
   slug: string

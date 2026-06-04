@@ -39,7 +39,14 @@ export default function ProductDetailClient() {
 
   const mainImage = selectedImage || images?.[0]?.url
   const priceInfo = getProductPrice(data, currency)
-  const displayPrice = priceInfo?.finalPrice ?? Number(data.prices?.[0]?.price ?? 0)
+  const basePrice = Number(data.prices?.[0]?.price ?? data.price ?? 0)
+  const salePriceRaw = Number(data.prices?.[0]?.salePrice ?? data.salePrice ?? 0)
+  const hasFallbackDiscount = salePriceRaw > 0 && salePriceRaw < basePrice
+  const displayPrice = priceInfo?.finalPrice ?? (hasFallbackDiscount ? salePriceRaw : basePrice)
+  const displayOriginalPrice = priceInfo?.hasDiscount
+    ? priceInfo.price
+    : (hasFallbackDiscount ? basePrice : null)
+  const hasDiscount = priceInfo?.hasDiscount || hasFallbackDiscount
 
   const handleAddToCart = async () => {
     const img = imageRef.current?.querySelector("img") as HTMLImageElement | null
@@ -131,12 +138,12 @@ export default function ProductDetailClient() {
                           bg-clip-text text-transparent">
             ${displayPrice.toFixed(2)}
           </span>
-          {priceInfo?.hasDiscount && (
+          {displayOriginalPrice && (
             <span className="text-xl text-gray-500 line-through">
-              ${priceInfo.price.toFixed(2)}
+              ${Number(displayOriginalPrice).toFixed(2)}
             </span>
           )}
-          {priceInfo?.hasDiscount && (
+          {hasDiscount && priceInfo?.discountPercent && (
             <span className="text-sm font-bold text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">
               -{priceInfo.discountPercent}%
             </span>
