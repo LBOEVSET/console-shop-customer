@@ -1,18 +1,19 @@
 "use client"
 
-import { Suspense } from "react"
-import { useQuery } from "@tanstack/react-query"
+import { Suspense, useEffect, useRef, useCallback } from "react"
+import { useInfiniteQuery } from "@tanstack/react-query"
 import { useSearchParams } from "next/navigation"
 import api from "@/lib/api"
 import { Product } from "@/types/product"
 import ProductCard from "@/components/product/ProductCard"
-import { SlidersHorizontal } from "lucide-react"
+import { SlidersHorizontal, Loader2 } from "lucide-react"
 
-function buildQuery(params: URLSearchParams) {
+const PAGE_LIMIT = 24
+
+function buildQuery(params: URLSearchParams, page: number) {
   const q = new URLSearchParams()
-  q.set("limit", "24")
-  const page = params.get("page")
-  if (page && page !== "1") q.set("page", page)
+  q.set("limit", String(PAGE_LIMIT))
+  q.set("page", String(page))
   const searchWord = params.get("searchWord")
   if (searchWord) q.set("searchWord", searchWord)
   const platformId = params.get("platformId")
@@ -27,15 +28,47 @@ function buildQuery(params: URLSearchParams) {
 
 function ProductGrid() {
   const searchParams = useSearchParams()
+  const sentinelRef = useRef<HTMLDivElement>(null)
 
-  const { data: products, isLoading, isError } = useQuery<Product[]>({
+  const {
+    data,
+    isLoading,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery<Product[]>({
     queryKey: ["products", searchParams.toString()],
-    queryFn: async () => {
-      const qs = buildQuery(searchParams)
+    initialPageParam: 1,
+    queryFn: async ({ pageParam }) => {
+      const qs = buildQuery(searchParams, pageParam as number)
       const res = await api.get(`/products?${qs}`)
       return res.data.data ?? res.data
     },
+    getNextPageParam: (lastPage, allPages) => {
+      // If the last page returned a full batch, there may be more
+      if (lastPage.length === PAGE_LIMIT) return allPages.length + 1
+      return undefined
+    },
   })
+
+  // IntersectionObserver — fires fetchNextPage when sentinel scrolls into view
+  const onIntersect = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+        fetchNextPage()
+      }
+    },
+    [hasNextPage, isFetchingNextPage, fetchNextPage]
+  )
+
+  useEffect(() => {
+    const el = sentinelRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(onIntersect, { threshold: 0.1 })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [onIntersect])
 
   const hasActiveFilters =
     searchParams.has("platformId") ||
@@ -45,6 +78,7 @@ function ProductGrid() {
     searchParams.has("searchWord")
 
   const searchWord = searchParams.get("searchWord")
+  const products = data?.pages.flat() ?? []
 
   if (isLoading) {
     return (
@@ -60,7 +94,7 @@ function ProductGrid() {
     return <div className="text-center py-20 text-red-400">Failed to load products.</div>
   }
 
-  if (!products?.length) {
+  if (!products.length) {
     return (
       <div className="flex flex-col items-center gap-4 py-24 text-gray-500">
         <SlidersHorizontal size={48} strokeWidth={1} />
@@ -81,10 +115,21 @@ function ProductGrid() {
           Results for &ldquo;<span className="text-white">{searchWord}</span>&rdquo;
         </p>
       )}
+
       <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
         {products.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
+      </div>
+
+      {/* Infinite scroll sentinel */}
+      <div ref={sentinelRef} className="flex justify-center py-8">
+        {isFetchingNextPage && (
+          <Loader2 className="animate-spin text-fuchsia-400" size={28} />
+        )}
+        {!hasNextPage && products.length > 0 && (
+          <p className="text-gray-600 text-sm font-mono">— end of results —</p>
+        )}
       </div>
     </>
   )
