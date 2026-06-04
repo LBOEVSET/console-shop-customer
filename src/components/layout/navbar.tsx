@@ -361,26 +361,28 @@ function MobileFilterRow() {
     : "Price"
 
   return (
-    <div className="overflow-x-auto">
-      <div className="flex items-center gap-2 px-4 py-2 min-w-max">
-        {/* Platform chips */}
-        <button type="button" onClick={() => selectPlatform("")}
-          className={`px-3 py-1.5 rounded-full text-xs font-medium transition whitespace-nowrap border
-            ${!platformId ? "bg-purple-600/20 border-purple-500/40 text-purple-300" : "border-white/15 text-gray-300 hover:text-white"}`}>
-          All
-        </button>
-        {platforms?.map(p => (
-          <button key={p.id} type="button" onClick={() => selectPlatform(p.id)}
+    <div className="flex items-center">
+      {/* Platform chips — scrollable */}
+      <div className="overflow-x-auto flex-1">
+        <div className="flex items-center gap-2 px-4 py-2 min-w-max">
+          <button type="button" onClick={() => selectPlatform("")}
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition whitespace-nowrap border
-              ${platformId === p.id ? "bg-purple-600/20 border-purple-500/40 text-purple-300" : "border-white/15 text-gray-300 hover:text-white"}`}>
-            {p.name}
+              ${!platformId ? "bg-purple-600/20 border-purple-500/40 text-purple-300" : "border-white/15 text-gray-300 hover:text-white"}`}>
+            All
           </button>
-        ))}
+          {platforms?.map(p => (
+            <button key={p.id} type="button" onClick={() => selectPlatform(p.id)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition whitespace-nowrap border
+                ${platformId === p.id ? "bg-purple-600/20 border-purple-500/40 text-purple-300" : "border-white/15 text-gray-300 hover:text-white"}`}>
+              {p.name}
+            </button>
+          ))}
+        </div>
+      </div>
 
-        <div className="w-px h-4 bg-white/10 mx-0.5 flex-shrink-0" />
-
-        {/* Genre dropdown */}
-        <Dropdown minWidth="min-w-[200px]"
+      {/* Genre + Price — fixed, outside scrollable area so dropdowns aren't clipped */}
+      <div className="flex items-center gap-2 px-3 py-2 flex-shrink-0 border-l border-white/[0.07]">
+        <Dropdown minWidth="min-w-[200px]" align="right"
           trigger={open => (
             <FilterBtn
               label={categoryIds.length ? `Genre (${categoryIds.length})` : "Genre"}
@@ -389,29 +391,30 @@ function MobileFilterRow() {
               open={open}
             />
           )}>
-          {categories?.map(c => {
-            const checked = categoryIds.includes(c.id)
-            return (
-              <button key={c.id} type="button" onClick={() => {
-                setCategoryIds(prev => {
-                  const next = prev.includes(c.id) ? prev.filter(x => x !== c.id) : [...prev, c.id]
-                  navigate({ categoryIds: next })
-                  return next
-                })
-              }}
-                className="w-full flex items-center gap-3 px-4 py-2 text-xs text-gray-300 hover:text-white hover:bg-white/5 transition">
-                <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center flex-shrink-0 transition
-                  ${checked ? "bg-purple-500 border-purple-500" : "border-white/20"}`}>
-                  {checked && <svg width="8" height="7" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-                </span>
-                {c.name}
-              </button>
-            )
-          })}
+          <div className="max-h-64 overflow-y-auto">
+            {categories?.map(c => {
+              const checked = categoryIds.includes(c.id)
+              return (
+                <button key={c.id} type="button" onClick={() => {
+                  setCategoryIds(prev => {
+                    const next = prev.includes(c.id) ? prev.filter(x => x !== c.id) : [...prev, c.id]
+                    navigate({ categoryIds: next })
+                    return next
+                  })
+                }}
+                  className="w-full flex items-center gap-3 px-4 py-2 text-xs text-gray-300 hover:text-white hover:bg-white/5 transition">
+                  <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center flex-shrink-0 transition
+                    ${checked ? "bg-purple-500 border-purple-500" : "border-white/20"}`}>
+                    {checked && <svg width="8" height="7" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+                  </span>
+                  {c.name}
+                </button>
+              )
+            })}
+          </div>
         </Dropdown>
 
-        {/* Price dropdown */}
-        <Dropdown minWidth="min-w-[200px]"
+        <Dropdown minWidth="min-w-[200px]" align="right"
           trigger={open => (
             <FilterBtn
               label={priceLabel}
