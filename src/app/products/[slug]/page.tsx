@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import { serverFetch } from "@/lib/serverFetch"
-import EventDetailClient from "./EventDetailClient"
+import ProductDetailClient from "./ProductDetailClient"
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://arcadezenter.com"
 
@@ -8,20 +8,19 @@ type Props = { params: Promise<{ slug: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const res = await serverFetch(`/events/${slug}`)
-  const event = res?.data ?? res
+  const res = await serverFetch(`/products/${slug}`)
+  const product = res?.data ?? res
 
-  if (!event) return { title: "Event Not Found" }
+  if (!product) return { title: "Product Not Found" }
 
-  const title = event.title
-  const description = event.description?.slice(0, 160) ?? `Join ${title} — tickets available at ArcadeZenter.`
-  const image = event.media?.[0]?.url
-  const url = `${SITE_URL}/events/${slug}`
-  const dateStr = event.date ? new Date(event.date).toLocaleDateString("en-US", { dateStyle: "long" }) : ""
+  const title = product.title
+  const description = product.description?.slice(0, 160) ?? `Buy ${title} — instant digital delivery at ArcadeZenter.`
+  const image = product.media?.find((m: any) => m.type === "IMAGE")?.url
+  const url = `${SITE_URL}/products/${slug}`
 
   return {
     title,
-    description: dateStr ? `${dateStr} — ${description}` : description,
+    description,
     alternates: { canonical: url },
     openGraph: {
       type: "website",
@@ -39,6 +38,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default function EventDetailPage() {
-  return <EventDetailClient />
+export default function ProductDetailPage() {
+  return <ProductDetailClient />
 }

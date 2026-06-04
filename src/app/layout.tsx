@@ -7,9 +7,55 @@ import PopupChat from "@/components/chat/popup-chat"
 import AuthInitializer from "@/components/auth/auth-initializer"
 import GuestInitializer from "@/components/auth/GuestInitializer"
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://arcadezenter.com"
+const SITE_NAME = "ArcadeZenter"
+const DEFAULT_DESCRIPTION = "Buy digital game keys for PlayStation, PC, Xbox and Nintendo. Instant delivery, best prices."
+const DEFAULT_OG_IMAGE = `${SITE_URL}/og-default.jpg`
+
 export const metadata: Metadata = {
-  title: "Arcade Zenter 🕹️",
-  description: "Console Games & Accessories Marketplace",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${SITE_NAME} — Digital Game Keys & Console Store`,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: DEFAULT_DESCRIPTION,
+  keywords: [
+    "game keys", "digital games", "PlayStation", "Xbox", "Nintendo", "PC games",
+    "buy games online", "cheap game keys", "instant delivery", "console games",
+    "ArcadeZenter",
+  ],
+  authors: [{ name: SITE_NAME, url: SITE_URL }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large" },
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} — Digital Game Keys & Console Store`,
+    description: DEFAULT_DESCRIPTION,
+    images: [{ url: DEFAULT_OG_IMAGE, width: 1200, height: 630, alt: SITE_NAME }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: "@arcadezenter",
+    title: `${SITE_NAME} — Digital Game Keys & Console Store`,
+    description: DEFAULT_DESCRIPTION,
+    images: [DEFAULT_OG_IMAGE],
+  },
+  alternates: {
+    canonical: SITE_URL,
+  },
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
 }
 
 export default function RootLayout({

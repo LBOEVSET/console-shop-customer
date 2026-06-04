@@ -11,21 +11,23 @@ import { flyToCart } from "@/lib/flyToCart"
 import { useCurrencyStore } from "@/store/currency.store"
 import { getProductPrice } from "@/lib/getProductPrice"
 
-export default function ProductDetailPage() {
-  const { id } = useParams()
+export default function ProductDetailClient() {
+  const { slug } = useParams()
   const addToCart = useCartStore(state => state.addToCart)
 
   const [quantity, setQuantity] = useState(1)
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const imageRef = useRef<HTMLDivElement>(null)
 
+  const { currency } = useCurrencyStore()
+
   const { data, isLoading, isError } = useQuery<Product>({
-    queryKey: ["product", id],
+    queryKey: ["product", slug],
     queryFn: async () => {
-      const res = await api.get(`/products/${id}`)
+      const res = await api.get(`/products/${slug}`)
       return res.data.data
     },
-    enabled: !!id
+    enabled: !!slug
   })
 
   if (isLoading) return <div className="text-center py-20 text-white">Loading...</div>
@@ -36,6 +38,8 @@ export default function ProductDetailPage() {
     .sort((a, b) => a.sortOrder - b.sortOrder)
 
   const mainImage = selectedImage || images?.[0]?.url
+  const priceInfo = getProductPrice(data, currency)
+  const displayPrice = priceInfo?.finalPrice ?? Number(data.price ?? 0)
 
   const handleAddToCart = async () => {
     const img = imageRef.current?.querySelector("img") as HTMLImageElement | null
@@ -121,10 +125,22 @@ export default function ProductDetailPage() {
           {data.description}
         </p>
 
-        <div className="text-4xl font-extrabold bg-gradient-to-r 
-                        from-fuchsia-400 via-pink-500 to-cyan-400
-                        bg-clip-text text-transparent">
-          ${Number(data.prices).toFixed(2)}
+        <div className="flex items-baseline gap-3">
+          <span className="text-4xl font-extrabold bg-gradient-to-r
+                          from-fuchsia-400 via-pink-500 to-cyan-400
+                          bg-clip-text text-transparent">
+            ${displayPrice.toFixed(2)}
+          </span>
+          {priceInfo?.hasDiscount && (
+            <span className="text-xl text-gray-500 line-through">
+              ${priceInfo.price.toFixed(2)}
+            </span>
+          )}
+          {priceInfo?.hasDiscount && (
+            <span className="text-sm font-bold text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">
+              -{priceInfo.discountPercent}%
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-4">

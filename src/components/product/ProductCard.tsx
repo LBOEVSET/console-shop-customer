@@ -55,7 +55,7 @@ export default function ProductCard({
                  hover:shadow-[0_0_30px_rgba(34,211,238,0.4)]"
     >
       {/* Clickable Area */}
-      <Link href={`/products/${product.id}`} className="flex-1" onClick={trackClick}>
+      <Link href={`/products/${product.slug ?? product.id}`} className="flex-1" onClick={trackClick}>
         
         {/* Image */}
         <div
