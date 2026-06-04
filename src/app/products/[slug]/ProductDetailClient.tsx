@@ -39,7 +39,7 @@ export default function ProductDetailClient() {
 
   const mainImage = selectedImage || images?.[0]?.url
   const priceInfo = getProductPrice(data, currency)
-  const displayPrice = priceInfo?.finalPrice ?? Number(data.price ?? 0)
+  const displayPrice = priceInfo?.finalPrice ?? Number(data.prices?.[0]?.price ?? 0)
 
   const handleAddToCart = async () => {
     const img = imageRef.current?.querySelector("img") as HTMLImageElement | null
