@@ -8,8 +8,8 @@ steps:
     - container
     - clusters
     - get-credentials
-    - console-cluster
-    - --region=asia-southeast1
+    - console-shop-cluster
+    - --zone=asia-southeast1-c
     - --project=$PROJECT_ID
 
 
@@ -29,8 +29,8 @@ steps:
         --from-literal=NODE_ENV="$_NODE_ENV" \
         --dry-run=client -o yaml | kubectl apply -f -
   env:
-    - CLOUDSDK_COMPUTE_REGION=asia-southeast1
-    - CLOUDSDK_CONTAINER_CLUSTER=console-cluster
+    - CLOUDSDK_COMPUTE_ZONE=asia-southeast1-c
+    - CLOUDSDK_CONTAINER_CLUSTER=console-shop-cluster
 
 # 3️⃣ Restart frontend so it reloads env secrets
 - name: 'gcr.io/cloud-builders/kubectl'
@@ -39,11 +39,11 @@ steps:
     [
       'rollout',
       'restart',
-      'deployment/console-web'
+      'deployment/customer-web'
     ]
   env:
-    - CLOUDSDK_COMPUTE_REGION=asia-southeast1
-    - CLOUDSDK_CONTAINER_CLUSTER=console-cluster
+    - CLOUDSDK_COMPUTE_ZONE=asia-southeast1-c
+    - CLOUDSDK_CONTAINER_CLUSTER=console-shop-cluster
 
 # 4️⃣ Build Docker image (inject build-time env for Next.js)
 - name: 'gcr.io/cloud-builders/docker'
@@ -58,7 +58,7 @@ steps:
       '--build-arg','NODE_ENV=$_NODE_ENV',
       '--build-arg','PORT=$_PORT',
       '-t',
-      'asia-southeast1-docker.pkg.dev/$PROJECT_ID/console-shop/frontend:$SHORT_SHA',
+      'asia-southeast1-docker.pkg.dev/$PROJECT_ID/console-shop/customer-web:$SHORT_SHA',
       '.'
     ]
 
@@ -69,7 +69,7 @@ steps:
   args:
     [
       'push',
-      'asia-southeast1-docker.pkg.dev/$PROJECT_ID/console-shop/frontend:$SHORT_SHA'
+      'asia-southeast1-docker.pkg.dev/$PROJECT_ID/console-shop/customer-web:$SHORT_SHA'
     ]
 
 
@@ -80,16 +80,16 @@ steps:
     [
       'set',
       'image',
-      'deployment/console-web',
-      'console-web=asia-southeast1-docker.pkg.dev/$PROJECT_ID/console-shop/frontend:$SHORT_SHA'
+      'deployment/customer-web',
+      'customer-web=asia-southeast1-docker.pkg.dev/$PROJECT_ID/console-shop/customer-web:$SHORT_SHA'
     ]
   env:
-    - CLOUDSDK_COMPUTE_REGION=asia-southeast1
-    - CLOUDSDK_CONTAINER_CLUSTER=console-cluster
+    - CLOUDSDK_COMPUTE_ZONE=asia-southeast1-c
+    - CLOUDSDK_CONTAINER_CLUSTER=console-shop-cluster
 
 
 images:
-- 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/console-shop/frontend:$SHORT_SHA'
+- 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/console-shop/customer-web:$SHORT_SHA'
 
 options:
   logging: CLOUD_LOGGING_ONLY
