@@ -29,6 +29,7 @@ export default function CheckoutPage() {
 
   const [cardLoading, setCardLoading] = useState(false)
   const [showLoginModal, setShowLoginModal] = useState(false)
+  const [pendingCheckout, setPendingCheckout] = useState(false)
 
   const [cardHolderName, setCardHolderName] = useState("")
   const [cardNumber, setCardNumber] = useState("")
@@ -61,22 +62,29 @@ export default function CheckoutPage() {
       setLoading(true)
       setError(null)
 
-      const res = await api.post("/orders/checkout", {
+      // Step 1: Create the order. Backend always returns { orderId } regardless
+      // of payment method — Omise charges are handled by the payment gateway.
+      const orderRes = await api.post("/orders/checkout", {
         promoCode: promoCode || undefined,
         paymentMethod
       })
-
-      const { orderId, qrCode } = res.data.data
-
+      const { orderId } = orderRes.data.data
       setOrderId(orderId)
-      setShowModal(true)
 
       if (paymentMethod === "PROMPTPAY") {
-        setPaymentStatus("WAITING")
+        // Step 2 (PromptPay): Ask payment gateway to create the Omise charge
+        // and return the QR code URL.
+        const ppRes = await api.post("/payments/promptpay", { orderId })
+        const { qrCode } = ppRes.data.data
         setQrCode(qrCode)
+        setPaymentStatus("WAITING")
       } else {
+        // Step 2 (Card): Payment modal collects card details and calls
+        // /payments/card with the Omise token.
         setPaymentStatus("IDLE")
       }
+
+      setShowModal(true)
 
     } catch (err: any) {
       setError(err.response?.data?.message || "Checkout failed")
@@ -189,12 +197,22 @@ export default function CheckoutPage() {
   /* -------------------------------- */
   /* LOGIN MODAL SUCCESS HANDLER      */
   /* -------------------------------- */
+  // Cannot call handleCheckout() directly here — it closes over the stale
+  // `user` value (null before login). Instead, set a flag and let the effect
+  // below fire after the component re-renders with the updated user.
   const handleLoginSuccess = async () => {
     await fetchProfile()
     await fetchCart()
     setShowLoginModal(false)
-    handleCheckout()
+    setPendingCheckout(true)
   }
+
+  useEffect(() => {
+    if (pendingCheckout && user) {
+      setPendingCheckout(false)
+      handleCheckout()
+    }
+  }, [pendingCheckout, user])
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 relative">

@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import api from "@/lib/api"
 import { useAuthStore } from "@/store/auth.store"
 import Link from "next/link"
@@ -25,6 +25,34 @@ export default function EventCheckoutPage() {
   const [showModal,      setShowModal]      = useState(false)
   const [paymentStatus,  setPaymentStatus]  = useState<"IDLE" | "WAITING" | "SUCCESS" | "FAILED">("IDLE")
   const [cardLoading,    setCardLoading]    = useState(false)
+
+  /* -------------------------------- */
+  /* POLL ORDER STATUS (PromptPay)    */
+  /* -------------------------------- */
+  useEffect(() => {
+    if (!orderId || paymentStatus !== "WAITING") return
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await api.get(`/orders/${orderId}`)
+        const status = res.data?.data?.status ?? res.data?.status
+
+        if (status === "PAID") {
+          setPaymentStatus("SUCCESS")
+          setTimeout(() => {
+            setShowModal(false)
+            router.push(`/orders/${orderId}`)
+          }, 1500)
+        }
+
+        if (status === "FAILED") {
+          setPaymentStatus("FAILED")
+        }
+      } catch {}
+    }, 3000)
+
+    return () => clearInterval(interval)
+  }, [orderId, paymentStatus])
 
   const { data: event, isLoading } = useQuery({
     queryKey: ["event", slug],
@@ -51,16 +79,22 @@ export default function EventCheckoutPage() {
         paymentMethod,
       })
 
+      // Step 1: Create the order. Backend always returns { orderId }.
       const data = res.data?.data ?? res.data
       setOrderId(data.orderId)
-      setShowModal(true)
 
       if (paymentMethod === "PROMPTPAY") {
+        // Step 2 (PromptPay): Ask payment gateway to create the Omise charge
+        // and return the QR code URL.
+        const ppRes = await api.post("/payments/promptpay", { orderId: data.orderId })
+        const ppData = ppRes.data?.data ?? ppRes.data
+        setQrCode(ppData.qrCode)
         setPaymentStatus("WAITING")
-        setQrCode(data.qrCode)
       } else {
         setPaymentStatus("IDLE")
       }
+
+      setShowModal(true)
     } catch (err: any) {
       setError(err.response?.data?.message || "Checkout failed. Please try again.")
     } finally {

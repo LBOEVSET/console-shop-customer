@@ -1,14 +1,14 @@
 import { io } from "socket.io-client"
-import { getConfig } from "@/lib/config"
+
+// NEXT_PUBLIC_SOCKET_URL is baked into the build at compile time — no runtime
+// fetch needed. Falls back to the NestJS backend default for local dev.
+const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL ?? "http://localhost:3012"
 
 /**
  * Connect to the backend's /chat Socket.IO namespace.
- * socketUrl is read at runtime from /api/config so it never needs to be
- * baked into the image at build time.
  */
-export const connectSocket = async ({ token }: { token: string }) => {
-  const { socketUrl } = await getConfig()
-  return io(`${socketUrl}/chat`, {
+export const connectSocket = ({ token }: { token: string }) => {
+  return io(`${SOCKET_URL}/chat`, {
     auth: { token },
     transports: ["websocket"],
     withCredentials: true,

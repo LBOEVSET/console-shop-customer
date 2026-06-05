@@ -17,17 +17,22 @@ interface User {
 interface AuthState {
   user: User | null
   loading: boolean
+  setUser: (user: User | null) => void
+  setLoading: (loading: boolean) => void
   fetchProfile: () => Promise<void>
   register: (data: any) => Promise<{ success: boolean; message: string }>
   login: (data: any) => Promise<{ success: boolean; message: string }>
   logout: () => Promise<void>
-  verifyOtp: (code: string) => Promise<any> 
-  resendOtp: () => Promise<any> 
+  verifyOtp: (code: string) => Promise<any>
+  resendOtp: () => Promise<any>
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   loading: true,
+
+  setUser: (user) => set({ user }),
+  setLoading: (loading) => set({ loading }),
 
   fetchProfile: async () => {
     try {

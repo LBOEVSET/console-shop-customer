@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useEffect, useCallback } from "react"
-import api from "@/lib/api"
+import { queueStat } from "@/lib/statsBatch"
 
 type EntityType = "PRODUCT" | "ARTICLE" | "EVENT" | "MERCHANDISE"
 type EventType  = "SEE" | "VIEW" | "CLICK"
@@ -40,9 +40,9 @@ export function useTrack({
 
   const fire = useCallback(
     (eventType: EventType) => {
-      api
-        .post("/statistics", { entityType, entityId, eventType, userId })
-        .catch(() => { /* silent — tracking must never break UX */ })
+      // Events are queued and flushed in a single batch request every 2 seconds
+      // instead of firing one HTTP request per product — prevents rate limit floods.
+      queueStat({ entityType, entityId, eventType, userId })
     },
     [entityType, entityId, userId],
   )

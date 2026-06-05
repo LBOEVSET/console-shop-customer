@@ -25,6 +25,7 @@ export interface CartItem {
 interface CartState {
   items: CartItem[]
   isOpen: boolean
+  setItems: (items: CartItem[]) => void
   openCart: () => void
   closeCart: () => void
   fetchCart: () => Promise<void>
@@ -40,6 +41,7 @@ export const useCartStore = create<CartState>((set, get) => ({
   items: [],
   isOpen: false,
 
+  setItems: (items) => set({ items }),
   openCart: () => set({ isOpen: true }),
   closeCart: () => set({ isOpen: false }),
 

@@ -16,8 +16,8 @@ function buildQuery(params: URLSearchParams, page: number) {
   q.set("page", String(page))
   const searchWord = params.get("searchWord")
   if (searchWord) q.set("searchWord", searchWord)
-  const platformId = params.get("platformId")
-  if (platformId) q.set("platformId", platformId)
+  const platform = params.get("platform")
+  if (platform) q.set("platform", platform)
   params.getAll("categoryIds").forEach((id) => q.append("categoryIds", id))
   const minPrice = params.get("minPrice")
   if (minPrice) q.set("minPrice", minPrice)
@@ -71,7 +71,7 @@ function ProductGrid() {
   }, [onIntersect])
 
   const hasActiveFilters =
-    searchParams.has("platformId") ||
+    searchParams.has("platform") ||
     searchParams.has("categoryIds") ||
     searchParams.has("minPrice") ||
     searchParams.has("maxPrice") ||

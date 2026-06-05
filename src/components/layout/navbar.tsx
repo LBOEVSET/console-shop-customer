@@ -94,7 +94,7 @@ function NavFilterRow() {
   const pathname     = usePathname()
   const searchParams = useSearchParams()           // ← the hook that needs Suspense
 
-  const [platformId,   setPlatformId]   = useState(searchParams.get("platformId") ?? "")
+  const [platform,     setPlatform]     = useState(searchParams.get("platform") ?? "")
   const [categoryIds,  setCategoryIds]  = useState<string[]>(searchParams.getAll("categoryIds"))
   const [priceInputs,  setPriceInputs]  = useState({ min: searchParams.get("minPrice") ?? "", max: searchParams.get("maxPrice") ?? "" })
   const [appliedPrice, setAppliedPrice] = useState({ min: searchParams.get("minPrice") ?? "", max: searchParams.get("maxPrice") ?? "" })
@@ -120,7 +120,7 @@ function NavFilterRow() {
   // sync URL → state when navigating within /products
   useEffect(() => {
     if (pathname === "/products") {
-      setPlatformId(searchParams.get("platformId") ?? "")
+      setPlatform(searchParams.get("platform") ?? "")
       setCategoryIds(searchParams.getAll("categoryIds"))
       const min = searchParams.get("minPrice") ?? ""
       const max = searchParams.get("maxPrice") ?? ""
@@ -130,15 +130,15 @@ function NavFilterRow() {
   }, [pathname, searchParams])
 
   const navigate = useCallback((overrides: {
-    platformId?: string; categoryIds?: string[]
+    platform?: string; categoryIds?: string[]
     minPrice?: string; maxPrice?: string
   } = {}) => {
-    const pid  = overrides.platformId  ?? platformId
+    const plat = overrides.platform    ?? platform
     const cats = overrides.categoryIds ?? categoryIds
     const min  = overrides.minPrice    ?? appliedPrice.min
     const max  = overrides.maxPrice    ?? appliedPrice.max
     const q = new URLSearchParams()
-    if (pid)  q.set("platformId", pid)
+    if (plat) q.set("platform", plat)
     cats.forEach(id => q.append("categoryIds", id))
     if (min)  q.set("minPrice", min)
     if (max)  q.set("maxPrice", max)
@@ -148,12 +148,12 @@ function NavFilterRow() {
     } else {
       router.push(`/products${qs ? `?${qs}` : ""}`)
     }
-  }, [pathname, router, platformId, categoryIds, appliedPrice])
+  }, [pathname, router, platform, categoryIds, appliedPrice])
 
-  function selectPlatform(id: string) {
-    const next = id === platformId ? "" : id
-    setPlatformId(next)
-    navigate({ platformId: next })
+  function selectPlatform(name: string) {
+    const next = name === platform ? "" : name
+    setPlatform(next)
+    navigate({ platform: next })
   }
 
   const toggleCategory = useCallback((id: string) => {
@@ -170,12 +170,12 @@ function NavFilterRow() {
   }
 
   function clearFilters() {
-    setPlatformId(""); setCategoryIds([])
+    setPlatform(""); setCategoryIds([])
     setPriceInputs({ min: "", max: "" }); setAppliedPrice({ min: "", max: "" })
     if (pathname === "/products") router.replace("/products", { scroll: false })
   }
 
-  const hasFilters = !!platformId || categoryIds.length > 0 || !!appliedPrice.min || !!appliedPrice.max
+  const hasFilters = !!platform || categoryIds.length > 0 || !!appliedPrice.min || !!appliedPrice.max
   const priceLabel =
     appliedPrice.min && appliedPrice.max ? `$${appliedPrice.min}–$${appliedPrice.max}`
     : appliedPrice.min ? `≥$${appliedPrice.min}`
@@ -189,15 +189,15 @@ function NavFilterRow() {
       <div className="flex items-center gap-1">
         <button type="button" onClick={() => selectPlatform("")}
           className={`px-3 py-1.5 rounded-md text-xs font-medium transition
-            ${!platformId
+            ${!platform
               ? "bg-purple-600/20 text-purple-300 border border-purple-500/40"
               : "text-gray-300 hover:text-white hover:bg-white/5 border border-transparent"}`}>
           All
         </button>
         {platforms?.map(p => (
-          <button key={p.id} type="button" onClick={() => selectPlatform(p.id)}
+          <button key={p.id} type="button" onClick={() => selectPlatform(p.name)}
             className={`px-3 py-1.5 rounded-md text-xs font-medium transition
-              ${platformId === p.id
+              ${platform === p.name
                 ? "bg-purple-600/20 text-purple-300 border border-purple-500/40"
                 : "text-gray-300 hover:text-white hover:bg-white/5 border border-transparent"}`}>
             {p.name}
@@ -306,7 +306,7 @@ function MobileFilterRow() {
   const pathname     = usePathname()
   const searchParams = useSearchParams()
 
-  const [platformId,  setPlatformId]  = useState(searchParams.get("platformId") ?? "")
+  const [platform,    setPlatform]    = useState(searchParams.get("platform") ?? "")
   const [categoryIds, setCategoryIds] = useState<string[]>(searchParams.getAll("categoryIds"))
   const [priceInputs, setPriceInputs] = useState({ min: searchParams.get("minPrice") ?? "", max: searchParams.get("maxPrice") ?? "" })
   const [appliedPrice, setAppliedPrice] = useState({ min: searchParams.get("minPrice") ?? "", max: searchParams.get("maxPrice") ?? "" })
@@ -325,20 +325,20 @@ function MobileFilterRow() {
 
   useEffect(() => {
     if (pathname === "/products") {
-      setPlatformId(searchParams.get("platformId") ?? "")
+      setPlatform(searchParams.get("platform") ?? "")
       setCategoryIds(searchParams.getAll("categoryIds"))
       const min = searchParams.get("minPrice") ?? ""; const max = searchParams.get("maxPrice") ?? ""
       setPriceInputs({ min, max }); setAppliedPrice({ min, max })
     }
   }, [pathname, searchParams])
 
-  const navigate = useCallback((overrides: { platformId?: string; categoryIds?: string[]; minPrice?: string; maxPrice?: string } = {}) => {
-    const pid  = overrides.platformId  ?? platformId
+  const navigate = useCallback((overrides: { platform?: string; categoryIds?: string[]; minPrice?: string; maxPrice?: string } = {}) => {
+    const plat = overrides.platform    ?? platform
     const cats = overrides.categoryIds ?? categoryIds
     const min  = overrides.minPrice    ?? appliedPrice.min
     const max  = overrides.maxPrice    ?? appliedPrice.max
     const q = new URLSearchParams()
-    if (pid)  q.set("platformId", pid)
+    if (plat) q.set("platform", plat)
     cats.forEach(id => q.append("categoryIds", id))
     if (min)  q.set("minPrice", min)
     if (max)  q.set("maxPrice", max)
@@ -348,10 +348,10 @@ function MobileFilterRow() {
     } else {
       router.push(`/products${qs ? `?${qs}` : ""}`)
     }
-  }, [pathname, router, platformId, categoryIds, appliedPrice])
+  }, [pathname, router, platform, categoryIds, appliedPrice])
 
-  function selectPlatform(id: string) {
-    const next = id === platformId ? "" : id; setPlatformId(next); navigate({ platformId: next })
+  function selectPlatform(name: string) {
+    const next = name === platform ? "" : name; setPlatform(next); navigate({ platform: next })
   }
 
   const priceLabel =
@@ -367,13 +367,13 @@ function MobileFilterRow() {
         <div className="flex items-center gap-2 px-4 py-2 min-w-max">
           <button type="button" onClick={() => selectPlatform("")}
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition whitespace-nowrap border
-              ${!platformId ? "bg-purple-600/20 border-purple-500/40 text-purple-300" : "border-white/15 text-gray-300 hover:text-white"}`}>
+              ${!platform ? "bg-purple-600/20 border-purple-500/40 text-purple-300" : "border-white/15 text-gray-300 hover:text-white"}`}>
             All
           </button>
           {platforms?.map(p => (
-            <button key={p.id} type="button" onClick={() => selectPlatform(p.id)}
+            <button key={p.id} type="button" onClick={() => selectPlatform(p.name)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition whitespace-nowrap border
-                ${platformId === p.id ? "bg-purple-600/20 border-purple-500/40 text-purple-300" : "border-white/15 text-gray-300 hover:text-white"}`}>
+                ${platform === p.name ? "bg-purple-600/20 border-purple-500/40 text-purple-300" : "border-white/15 text-gray-300 hover:text-white"}`}>
               {p.name}
             </button>
           ))}
@@ -467,8 +467,25 @@ function MobileMenu({
       {/* panel */}
       <div className="w-72 max-w-[85vw] bg-[#1a1730] h-full flex flex-col shadow-2xl animate-slide-in-right">
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
-          <span className="text-lg font-bold text-white">Menu</span>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition">
+          {user ? (
+            <div className="flex items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={user.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.firstName || user.email)}&background=7c3aed&color=fff`}
+                className="w-9 h-9 rounded-full border border-purple-500/40 flex-shrink-0"
+                alt="avatar"
+              />
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-white truncate">
+                  {user.firstName} {user.lastName}
+                </p>
+                <p className="text-xs text-gray-400 truncate">{user.email}</p>
+              </div>
+            </div>
+          ) : (
+            <span className="text-lg font-bold text-white">Menu</span>
+          )}
+          <button onClick={onClose} className="text-gray-400 hover:text-white transition flex-shrink-0 ml-2">
             <X size={20} />
           </button>
         </div>
@@ -569,7 +586,8 @@ export default function Navbar() {
   const [mobileMenuOpen,  setMobileMenuOpen]  = useState(false)
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [mobileSearch,    setMobileSearch]    = useState("")
-  const debouncedSearch = useDebounce(search)
+  const debouncedSearch       = useDebounce(search)
+  const debouncedMobileSearch = useDebounce(mobileSearch)
   const userMenuRef = useRef<HTMLDivElement>(null)
   const searchRef   = useRef<HTMLDivElement>(null)
 
@@ -594,6 +612,17 @@ export default function Navbar() {
       return res.data.data ?? res.data ?? []
     },
     enabled: !!debouncedSearch.trim(),
+    staleTime: 30_000,
+  })
+
+  const { data: mobileSearchResults, isFetching: mobileSearchLoading } = useQuery<Product[]>({
+    queryKey: ["mobile-search-dropdown", debouncedMobileSearch],
+    queryFn: async () => {
+      if (!debouncedMobileSearch.trim()) return []
+      const res = await api.get(`/products?searchWord=${encodeURIComponent(debouncedMobileSearch)}&limit=8`)
+      return res.data.data ?? res.data ?? []
+    },
+    enabled: !!debouncedMobileSearch.trim() && mobileSearchOpen,
     staleTime: 30_000,
   })
 
@@ -670,6 +699,51 @@ export default function Navbar() {
               className="text-gray-300 hover:text-white text-sm transition flex-shrink-0">
               Cancel
             </button>
+          </div>
+
+          {/* Live suggestions */}
+          <div className="flex-1 overflow-y-auto">
+            {mobileSearchLoading && (
+              <div className="px-4 py-4 text-sm text-gray-400 animate-pulse">Searching…</div>
+            )}
+            {!mobileSearchLoading && debouncedMobileSearch.trim() && mobileSearchResults?.length === 0 && (
+              <div className="px-4 py-4 text-sm text-gray-400">
+                No results for &ldquo;{debouncedMobileSearch}&rdquo;
+              </div>
+            )}
+            {mobileSearchResults?.map(item => (
+              <button key={item.id} type="button"
+                onClick={() => {
+                  router.push(`/products/${item.slug ?? item.id}`)
+                  setMobileSearch("")
+                  setMobileSearchOpen(false)
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition text-left border-b border-white/[0.05]">
+                {item.media?.[0]?.url && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={item.media[0].url} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+                )}
+                <div className="min-w-0">
+                  <p className="text-sm text-white leading-tight truncate">{item.title}</p>
+                  {item.platform?.name && (
+                    <p className="text-xs text-gray-400 mt-0.5">{item.platform.name}</p>
+                  )}
+                </div>
+              </button>
+            ))}
+            {/* Press enter hint */}
+            {mobileSearch.trim() && !mobileSearchLoading && (
+              <button type="button"
+                onClick={() => {
+                  router.push(`/products?searchWord=${encodeURIComponent(mobileSearch.trim())}`)
+                  setMobileSearch("")
+                  setMobileSearchOpen(false)
+                }}
+                className="w-full flex items-center gap-2 px-4 py-3 text-sm text-purple-400 hover:text-purple-300 hover:bg-white/5 transition">
+                <Search size={13} />
+                See all results for &ldquo;{mobileSearch}&rdquo;
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -815,6 +889,20 @@ export default function Navbar() {
             <button className="md:hidden text-gray-200 hover:text-white transition"
               onClick={() => setMobileSearchOpen(true)}>
               <Search size={19} />
+            </button>
+
+            {/* Mobile user avatar / login icon */}
+            <button className="md:hidden" onClick={() => setMobileMenuOpen(true)}>
+              {user ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={user.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.firstName || user.email)}&background=7c3aed&color=fff`}
+                  className="w-7 h-7 rounded-full border border-purple-500/40"
+                  alt="avatar"
+                />
+              ) : (
+                <User size={19} className="text-gray-200 hover:text-white transition" />
+              )}
             </button>
 
             {/* Hamburger — mobile only */}

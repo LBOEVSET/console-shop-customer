@@ -1,19 +1,14 @@
 import axios from "axios"
 import { initGuest } from "@/lib/guest"
-import { getConfig } from "@/lib/config"
 
-// baseURL is resolved lazily on first request via the request interceptor
-// so it comes from the runtime /api/config response, not a build-time var.
+// The API URL is always the Next.js proxy prefix — no runtime config fetch needed.
+// All browser requests go to /api/v1/[...path] which the Next.js route handler
+// forwards to INTERNAL_API_URL (API Gateway) server-side.
+const API_BASE = "/api/v1"
+
 const api = axios.create({
+  baseURL: API_BASE,
   withCredentials: true,
-})
-
-api.interceptors.request.use(async (config) => {
-  if (!config.baseURL) {
-    const { apiUrl } = await getConfig()
-    config.baseURL = apiUrl
-  }
-  return config
 })
 
 let isRefreshing = false
@@ -31,8 +26,7 @@ let refreshPromise: Promise<void> | null = null
  */
 async function attemptRefresh(): Promise<boolean> {
   try {
-    const { apiUrl } = await getConfig()
-    const res = await fetch(`${apiUrl}/auth/refresh`, {
+    const res = await fetch(`${API_BASE}/auth/refresh`, {
       method: "POST",
       credentials: "include",
     })
