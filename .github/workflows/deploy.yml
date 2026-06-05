@@ -2,8 +2,7 @@ name: Deploy Customer Web to GKE
 
 on:
   push:
-    branches:
-      - dev
+    branches: [dev]
 
 env:
   REGION: asia-southeast1
@@ -24,6 +23,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Checkout config repo
+        uses: actions/checkout@v4
+        with:
+          repository: LBOEVSET/console-shop-customer-config
+          token: ${{ secrets.CONFIG_REPO_TOKEN }}
+          path: _config
+
+      - name: Load dev config
+        run: |
+          set -a && source _config/environments/dev.env && set +a
+          echo "NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL"                   >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_SOCKET_URL=$NEXT_PUBLIC_SOCKET_URL"             >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_OMISE_PUBLIC_KEY=$NEXT_PUBLIC_OMISE_PUBLIC_KEY" >> $GITHUB_ENV
+          echo "NEXTAUTH_SECRET=$NEXTAUTH_SECRET"                           >> $GITHUB_ENV
+          echo "NODE_ENV=$NODE_ENV"                                         >> $GITHUB_ENV
+          echo "PORT=$PORT"                                                 >> $GITHUB_ENV
+
       - name: Authenticate to Google Cloud (WIF)
         uses: google-github-actions/auth@v2
         with:
@@ -41,9 +57,12 @@ jobs:
           IMAGE_PATH="${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO }}/${{ env.IMAGE }}"
           docker build \
             --platform linux/amd64 \
-            --build-arg NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }} \
-            --build-arg NEXT_PUBLIC_SOCKET_URL=${{ secrets.NEXT_PUBLIC_SOCKET_URL }} \
-            --build-arg NEXT_PUBLIC_OMISE_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_OMISE_PUBLIC_KEY }} \
+            --build-arg NEXT_PUBLIC_API_URL="${{ env.NEXT_PUBLIC_API_URL }}" \
+            --build-arg NEXT_PUBLIC_SOCKET_URL="${{ env.NEXT_PUBLIC_SOCKET_URL }}" \
+            --build-arg NEXT_PUBLIC_OMISE_PUBLIC_KEY="${{ env.NEXT_PUBLIC_OMISE_PUBLIC_KEY }}" \
+            --build-arg NEXTAUTH_SECRET="${{ env.NEXTAUTH_SECRET }}" \
+            --build-arg NODE_ENV="${{ env.NODE_ENV }}" \
+            --build-arg PORT="${{ env.PORT }}" \
             -t "${IMAGE_PATH}:latest" \
             -t "${IMAGE_PATH}:${{ github.sha }}" \
             .
@@ -57,7 +76,9 @@ jobs:
           location:     ${{ secrets.GKE_ZONE }}
           project_id:   ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Rollout restart
+      - name: Deploy
         run: |
-          kubectl rollout restart deployment/${{ env.DEPLOY }} -n ${{ env.NS }}
-          kubectl rollout status  deployment/${{ env.DEPLOY }} -n ${{ env.NS }} --timeout=120s
+          kubectl set image deployment/${{ env.DEPLOY }} \
+            ${{ env.DEPLOY }}="${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO }}/${{ env.IMAGE }}:${{ github.sha }}" \
+            -n ${{ env.NS }}
+          kubectl rollout status deployment/${{ env.DEPLOY }} -n ${{ env.NS }} --timeout=120s
