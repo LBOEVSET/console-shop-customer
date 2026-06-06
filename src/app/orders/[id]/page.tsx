@@ -4,9 +4,17 @@ import { useParams } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
 import Image from "next/image"
 import api from "@/lib/api"
+import { useCurrencyStore } from "@/store/currency.store"
 
 export default function OrderDetailPage() {
   const { id } = useParams()
+  const { currency } = useCurrencyStore()
+
+  // Orders are stored in USD; convert to THB for display when needed
+  const fmt = (usdAmount: number) => {
+    if (currency === "THB") return `฿${(usdAmount * 35).toFixed(2)}`
+    return `$${usdAmount.toFixed(2)}`
+  }
 
   const { data, isLoading } = useQuery({
     queryKey: ["order", id],
@@ -70,14 +78,14 @@ export default function OrderDetailPage() {
                 )}
                 <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
                 <p className="text-sm text-gray-500">
-                  Price per item: ฿{Number(item.price).toFixed(2)}
+                  Price per item: {fmt(Number(item.price))}
                 </p>
               </div>
 
               {/* Subtotal */}
               <div className="text-right">
                 <p className="text-lg font-bold">
-                  ฿{(Number(item.price) * item.quantity).toFixed(2)}
+                  {fmt(Number(item.price) * item.quantity)}
                 </p>
               </div>
             </div>
@@ -91,17 +99,17 @@ export default function OrderDetailPage() {
 
         <div className="flex justify-between text-gray-600">
           <span>Subtotal</span>
-          <span>฿{Number(data.subtotal).toFixed(2)}</span>
+          <span>{fmt(Number(data.subtotal))}</span>
         </div>
 
         <div className="flex justify-between text-gray-600">
           <span>Discount</span>
-          <span>฿{Number(data.discount).toFixed(2)}</span>
+          <span>{fmt(Number(data.discount))}</span>
         </div>
 
         <div className="border-t pt-4 flex justify-between text-lg font-bold">
           <span>Total</span>
-          <span>฿{Number(data.total).toFixed(2)}</span>
+          <span>{fmt(Number(data.total))}</span>
         </div>
 
         <div className="flex justify-between text-sm text-gray-500">

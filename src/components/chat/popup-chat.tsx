@@ -46,12 +46,17 @@ export default function ChatWidget() {
         if (cancelled) return
         const wsToken: string = tokenData?.token ?? tokenData?.data?.token
 
-        // 2. Create a chat session via REST
-        const { data: sessionData } = await api.post("/chat/start")
-        if (cancelled) return
-        const sid: string = sessionData?.data?.id ?? sessionData?.id
-        setSessionId(sid)
-        sessionIdRef.current = sid
+        // 2. Get or create a chat session — reuse existing if we already have one
+        //    (backend also deduplicates on its end, but skipping the call on
+        //    re-open is cleaner and avoids a round-trip entirely)
+        let sid = sessionIdRef.current
+        if (!sid) {
+          const { data: sessionData } = await api.post("/chat/start")
+          if (cancelled) return
+          sid = sessionData?.data?.id ?? sessionData?.id
+          setSessionId(sid)
+          sessionIdRef.current = sid
+        }
 
         // 3. Connect socket with the real JWT
         const socket = await connectSocket({ token: wsToken })
@@ -101,7 +106,8 @@ export default function ChatWidget() {
       socketRef.current?.disconnect()
       socketRef.current = null
       setConnected(false)
-      setSessionId(null)
+      // Do NOT clear sessionId — keeps the existing session alive so
+      // re-opening the widget reconnects without creating a duplicate.
     }
   }, [open, user])
 

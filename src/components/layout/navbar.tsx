@@ -3,7 +3,7 @@
 import Link from "next/link"
 import {
   User, LogOut, ShoppingCart, Ticket,
-  Search, X, ChevronDown, Menu,
+  Search, X, ChevronDown, Menu, Star,
 } from "lucide-react"
 import { useAuthStore } from "@/store/auth.store"
 import { useCartStore } from "@/store/cart.store"
@@ -291,6 +291,9 @@ function NavFilterRow() {
         </Link>
         <Link href="/merchandise" className="text-xs text-gray-300 hover:text-white transition font-medium">
           Merch
+        </Link>
+        <Link href="/membership" className="text-xs font-bold text-yellow-400 hover:text-yellow-300 transition flex items-center gap-1">
+          <Star size={11} /> Membership
         </Link>
         <Link href="/products" className="text-xs text-purple-400 hover:text-purple-300 transition font-medium">
           Browse all →
@@ -748,7 +751,14 @@ export default function Navbar() {
         </div>
       )}
 
-      <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-500
+      {process.env.NEXT_PUBLIC_ZONE === "local" && (
+        <div className="fixed top-0 left-0 w-full z-[200] flex items-center justify-center gap-2 py-0.5 bg-amber-500 text-black text-[11px] font-bold tracking-widest uppercase select-none">
+          <span>⚡</span> Local Dev
+        </div>
+      )}
+
+      <header className={`fixed w-full z-50 transition-all duration-500
+        ${process.env.NEXT_PUBLIC_ZONE === "local" ? "top-[22px]" : "top-0"}
         ${scrolled ? "backdrop-blur-xl bg-black/85" : "bg-[#1a1730]"}`}>
 
         {/* grid texture */}
@@ -857,6 +867,7 @@ export default function Navbar() {
                   {userMenuOpen && (
                     <div className="absolute right-0 mt-3 w-48 z-50 bg-[#1a1730] border border-white/10 rounded-xl shadow-xl overflow-hidden">
                       <Link href="/profile"         onClick={() => setUserMenuOpen(false)} className="block px-4 py-2.5 text-sm text-gray-200 hover:bg-white/5 hover:text-white transition">Profile</Link>
+                      <Link href="/membership"      onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-yellow-400 hover:bg-yellow-500/10 hover:text-yellow-300 transition font-medium"><Star size={12} className="opacity-80" /> Membership</Link>
                       <Link href="/orders"          onClick={() => setUserMenuOpen(false)} className="block px-4 py-2.5 text-sm text-gray-200 hover:bg-white/5 hover:text-white transition">Orders</Link>
                       <Link href="/support/tickets" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-200 hover:bg-white/5 hover:text-white transition">
                         <Ticket size={13} className="opacity-60" /> My Tickets

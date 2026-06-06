@@ -11,7 +11,10 @@ interface User {
   phone?: string
   profileImage?: string
   backgroundImage?: string
+  role?: string
   status: number
+  createdAt?: string
+  vipExpiredAt?: string
 }
 
 interface AuthState {

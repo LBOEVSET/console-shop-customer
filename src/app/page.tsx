@@ -6,6 +6,7 @@ import HeadlinesSection from "@/components/home/HeadlinesSection"
 import ProductSection from "@/components/home/ProductSection"
 import EventsHomeSection from "@/components/home/EventsHomeSection"
 import MerchandiseHomeSection from "@/components/home/MerchandiseHomeSection"
+import MembershipSection from "@/components/home/MembershipSection"
 import { serverFetch } from "@/lib/serverFetch"
 
 export default async function HomePage() {
@@ -52,6 +53,8 @@ export default async function HomePage() {
         products={products.slice(0, 4)}
         viewAllHref="/products"
       />
+
+      <MembershipSection />
 
       <MerchandiseHomeSection items={merch} />
     </main>

@@ -201,7 +201,7 @@ export default function ProductDetailClient() {
   const [selected, setSelected] = useState<Selected | null>(null)
   const imageRef = useRef<HTMLDivElement>(null)
 
-  const { currency } = useCurrencyStore()
+  const { currency, region } = useCurrencyStore()
 
   const { data, isLoading, isError } = useQuery<Product>({
     queryKey: ["product", slug],
@@ -228,7 +228,7 @@ export default function ProductDetailClient() {
 
   const activeSelected = selected ?? defaultSelected
 
-  const priceInfo = getProductPrice(data, currency)
+  const priceInfo = getProductPrice(data, region)
   const basePrice = Number(data.prices?.[0]?.price ?? data.price ?? 0)
   const salePriceRaw = Number(data.prices?.[0]?.salePrice ?? data.salePrice ?? 0)
   const hasFallbackDiscount = salePriceRaw > 0 && salePriceRaw < basePrice
@@ -321,11 +321,11 @@ export default function ProductDetailClient() {
           <span className="text-4xl font-extrabold bg-gradient-to-r
                           from-fuchsia-400 via-pink-500 to-cyan-400
                           bg-clip-text text-transparent">
-            ${displayPrice.toFixed(2)}
+            {currency === "THB" ? "฿" : "$"}{displayPrice.toFixed(2)}
           </span>
           {displayOriginalPrice && (
             <span className="text-xl text-gray-500 line-through">
-              ${Number(displayOriginalPrice).toFixed(2)}
+              {currency === "THB" ? "฿" : "$"}{Number(displayOriginalPrice).toFixed(2)}
             </span>
           )}
           {hasDiscount && priceInfo?.discountPercent && (

@@ -104,21 +104,23 @@ export default function ProductCard({
             
             {/* Price */}
             <div className="flex flex-col">
-              {hasDiscount ? (
-                <>
-                  <span className="text-gray-400 line-through text-sm">
-                    {currency} {price.toFixed(2)}
-                  </span>
-
+              {(() => {
+                const sym = currency === "THB" ? "฿" : "$"
+                return hasDiscount ? (
+                  <>
+                    <span className="text-gray-400 line-through text-sm">
+                      {sym}{price.toFixed(2)}
+                    </span>
+                    <span className="text-2xl font-extrabold bg-gradient-to-r from-fuchsia-400 to-pink-500 bg-clip-text text-transparent">
+                      {sym}{finalPrice!.toFixed(2)}
+                    </span>
+                  </>
+                ) : (
                   <span className="text-2xl font-extrabold bg-gradient-to-r from-fuchsia-400 to-pink-500 bg-clip-text text-transparent">
-                    {currency} {finalPrice!.toFixed(2)}
+                    {sym}{finalPrice!.toFixed(2)}
                   </span>
-                </>
-              ) : (
-                <span className="text-2xl font-extrabold bg-gradient-to-r from-fuchsia-400 to-pink-500 bg-clip-text text-transparent">
-                  {currency} {finalPrice!.toFixed(2)}
-                </span>
-              )}
+                )
+              })()}
             </div>
 
             {/* Stock */}

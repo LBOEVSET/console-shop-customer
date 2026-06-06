@@ -8,6 +8,7 @@ import { useState } from "react"
 import { Order } from "@/types/order"
 import Pagination from "@/components/ui/Pagination"
 import { useAuthStore } from "@/store/auth.store"
+import { useCurrencyStore } from "@/store/currency.store"
 import { useRouter } from "next/navigation"
 
 const PAGE_SIZE = 10
@@ -15,7 +16,14 @@ const PAGE_SIZE = 10
 export default function OrdersPage() {
   const [page, setPage] = useState(1)
   const { user, loading: authLoading } = useAuthStore()
+  const { currency } = useCurrencyStore()
   const router = useRouter()
+
+  // Orders are stored in USD; convert to THB for display when needed
+  const fmt = (usdAmount: number) => {
+    if (currency === "THB") return `฿${(usdAmount * 35).toFixed(2)}`
+    return `$${usdAmount.toFixed(2)}`
+  }
 
   const { data: res, isLoading, isError } = useQuery({
     queryKey: ["my-orders", page],
@@ -119,7 +127,7 @@ export default function OrdersPage() {
             </div>
             <div className="text-right flex-shrink-0">
               <p className="text-xs text-gray-500">Total</p>
-              <p className="text-base md:text-lg font-bold text-indigo-600">฿{Number(order.total).toFixed(2)}</p>
+              <p className="text-base md:text-lg font-bold text-indigo-600">{fmt(Number(order.total))}</p>
             </div>
           </Link>
         )
