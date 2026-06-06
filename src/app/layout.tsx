@@ -6,6 +6,8 @@ import Footer from "@/components/layout/footer"
 import PopupChat from "@/components/chat/popup-chat"
 import AuthInitializer from "@/components/auth/auth-initializer"
 import GuestInitializer from "@/components/auth/GuestInitializer"
+import { Suspense } from "react"
+import SessionExpiredBanner from "@/components/auth/SessionExpiredBanner"
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://arcadezenter.com"
 const SITE_NAME = "ArcadeZenter"
@@ -73,6 +75,7 @@ export default function RootLayout({
           <AuthInitializer />
           <GuestInitializer />
 
+          <Suspense><SessionExpiredBanner /></Suspense>
           <Navbar />
 
           <main className="flex-1 w-full pt-24 md:pt-32">

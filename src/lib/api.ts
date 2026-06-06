@@ -57,6 +57,15 @@ api.interceptors.response.use(
           refreshPromise = (async () => {
             const refreshed = await attemptRefresh()
             if (!refreshed) {
+              // Check if the user was logged in (auth store holds state without circular import)
+              const { useAuthStore } = await import("@/store/auth.store")
+              const wasLoggedIn = !!useAuthStore.getState().user
+              if (wasLoggedIn) {
+                // Clear auth state and redirect — fetchProfile on next load will confirm guest
+                useAuthStore.getState().setUser(null)
+                window.location.href = "/?session=expired"
+                return
+              }
               await initGuest()
             }
           })()
