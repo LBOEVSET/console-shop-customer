@@ -67,8 +67,21 @@ export default function PaymentModal({
           ✕
         </button>
 
+        {/* ---------------- CARD LOADING ---------------- */}
+        {method === "CARD" && status === "IDLE" && cardLoading && (
+          <div className="flex flex-col items-center justify-center py-10 space-y-5">
+            <div className="w-14 h-14 rounded-full border-4 border-indigo-200 border-t-indigo-600 animate-spin" />
+            <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
+              Processing Payment
+            </h2>
+            <p className="text-sm text-gray-400 text-center">
+              Please wait while we securely process your card…
+            </p>
+          </div>
+        )}
+
         {/* ---------------- CARD FORM ---------------- */}
-        {method === "CARD" && status === "IDLE" && (
+        {method === "CARD" && status === "IDLE" && !cardLoading && (
           <div className="space-y-4">
             <h2 className="text-xl font-bold text-center">
               Enter Card Details
@@ -137,10 +150,9 @@ export default function PaymentModal({
                   cvc
                 })
               }
-              disabled={cardLoading}
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-medium hover:opacity-90 transition disabled:opacity-50"
+              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-medium hover:opacity-90 transition"
             >
-              {cardLoading ? "Processing..." : "Pay Now"}
+              Pay Now
             </button>
           </div>
         )}

@@ -23,11 +23,7 @@ export default function OrderDetailPage() {
 
   if (!data) return null
 
-  const isEventTicket = !data.item?.product
-  const image = isEventTicket
-    ? null
-    : data.item?.product?.media?.find((m: any) => m.type === "IMAGE")?.url || null
-  const itemTitle = isEventTicket ? data.item?.title : data.item?.product?.title
+  const items: any[] = data.items ?? []
 
   return (
     <div className="max-w-4xl mx-auto py-12 px-4 space-y-10">
@@ -41,38 +37,52 @@ export default function OrderDetailPage() {
         </span>
       </div>
 
-      {/* ITEM CARD */}
-      <div className="flex items-center gap-6 p-6 border rounded-2xl bg-white dark:bg-zinc-900 shadow-sm">
+      {/* ITEM CARDS */}
+      <div className="space-y-4">
+        {items.map((item: any) => {
+          const isEventTicket = !item.product
+          const image = isEventTicket
+            ? null
+            : item.product?.media?.[0]?.url || null
+          const itemTitle = isEventTicket ? item.title : item.product?.title
 
-        {/* Image */}
-        <div className="relative w-28 h-28 rounded-xl overflow-hidden bg-gray-100 dark:bg-zinc-800 flex items-center justify-center flex-shrink-0">
-          {isEventTicket || !image ? (
-            <span className="text-4xl">{isEventTicket ? "🎟️" : "🎮"}</span>
-          ) : (
-            <Image src={image} alt={itemTitle || ""} fill className="object-cover" />
-          )}
-        </div>
+          return (
+            <div
+              key={item.id}
+              className="flex items-center gap-6 p-6 border rounded-2xl bg-white dark:bg-zinc-900 shadow-sm"
+            >
+              {/* Image */}
+              <div className="relative w-28 h-28 rounded-xl overflow-hidden bg-gray-100 dark:bg-zinc-800 flex items-center justify-center flex-shrink-0">
+                {isEventTicket || !image ? (
+                  <span className="text-4xl">{isEventTicket ? "🎟️" : "🎮"}</span>
+                ) : (
+                  <Image src={image} alt={itemTitle || ""} fill className="object-cover" />
+                )}
+              </div>
 
-        {/* Info */}
-        <div className="flex-1 space-y-2">
-          <h2 className="text-xl font-semibold">{itemTitle}</h2>
-          {isEventTicket && (
-            <span className="inline-block px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-400 text-xs font-medium">
-              Event Ticket
-            </span>
-          )}
-          <p className="text-sm text-gray-500">Quantity: {data.item?.quantity}</p>
-          <p className="text-sm text-gray-500">
-            Price per item: ฿{Number(data.item?.price).toFixed(2)}
-          </p>
-        </div>
+              {/* Info */}
+              <div className="flex-1 space-y-2">
+                <h2 className="text-xl font-semibold">{itemTitle}</h2>
+                {isEventTicket && (
+                  <span className="inline-block px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-400 text-xs font-medium">
+                    Event Ticket
+                  </span>
+                )}
+                <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
+                <p className="text-sm text-gray-500">
+                  Price per item: ฿{Number(item.price).toFixed(2)}
+                </p>
+              </div>
 
-        {/* Subtotal */}
-        <div className="text-right">
-          <p className="text-lg font-bold">
-            ฿{(Number(data.item?.price) * data.item?.quantity).toFixed(2)}
-          </p>
-        </div>
+              {/* Subtotal */}
+              <div className="text-right">
+                <p className="text-lg font-bold">
+                  ฿{(Number(item.price) * item.quantity).toFixed(2)}
+                </p>
+              </div>
+            </div>
+          )
+        })}
       </div>
 
       {/* SUMMARY */}

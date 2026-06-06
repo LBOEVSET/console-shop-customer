@@ -20,15 +20,7 @@ export interface Order {
   createdAt: string
   paymentMethod: string
   payment?: { status: string }
-  item: {
-    title: string
-    quantity: number
-    price: number
-    productId?: string | null
-    eventId?: string | null
-    product?: {
-      title: string
-      media: { type: string; url: string }[]
-    } | null
-  }
+  // list endpoint returns item (first item only); detail endpoint returns items array
+  item?: OrderItem | null
+  items?: OrderItem[]
 }
