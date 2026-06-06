@@ -172,8 +172,6 @@ function PlanCard({
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-declare global { interface Window { Omise: any } }
-
 export default function MembershipPage() {
   const { user, fetchProfile } = useAuthStore()
   const router = useRouter()
