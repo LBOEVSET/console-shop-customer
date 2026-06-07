@@ -3,6 +3,7 @@ name: Deploy Customer Web to GKE
 on:
   push:
     branches: [dev]
+  workflow_dispatch:
   repository_dispatch:
     types: [deploy]
 

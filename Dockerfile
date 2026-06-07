@@ -1,7 +1,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 1 — Builder
 # ─────────────────────────────────────────────────────────────────────────────
-FROM node:20-alpine AS builder
+FROM mirror.gcr.io/library/node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -30,7 +30,7 @@ RUN npm run build
 # The standalone build creates .next/standalone — a minimal Node.js server
 # that does NOT need node_modules at runtime.
 # ─────────────────────────────────────────────────────────────────────────────
-FROM node:20-alpine AS runner
+FROM mirror.gcr.io/library/node:20-alpine AS runner
 
 WORKDIR /app
 
