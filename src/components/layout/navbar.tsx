@@ -471,7 +471,7 @@ function MobileMenu({
       <div className="w-72 max-w-[85vw] bg-[#1a1730] h-full flex flex-col shadow-2xl animate-slide-in-right">
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
           {user ? (
-            <div className="flex items-center gap-3">
+            <Link href="/profile" onClick={onClose} className="flex items-center gap-3 min-w-0 hover:opacity-80 transition">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={user.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.firstName || user.email)}&background=7c3aed&color=fff`}
@@ -484,7 +484,7 @@ function MobileMenu({
                 </p>
                 <p className="text-xs text-gray-400 truncate">{user.email}</p>
               </div>
-            </div>
+            </Link>
           ) : (
             <span className="text-lg font-bold text-white">Menu</span>
           )}
@@ -507,6 +507,10 @@ function MobileMenu({
               {label}
             </Link>
           ))}
+          <Link href="/membership" onClick={onClose}
+            className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10 transition font-medium">
+            <Star size={13} className="opacity-80" /> Membership
+          </Link>
 
           <div className="border-t border-white/10 my-4" />
 

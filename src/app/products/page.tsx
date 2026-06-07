@@ -82,9 +82,9 @@ function ProductGrid() {
 
   if (isLoading) {
     return (
-      <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="h-80 bg-white/5 animate-pulse rounded-xl" />
+          <div key={i} className="h-72 bg-white/5 animate-pulse rounded-xl" />
         ))}
       </div>
     )
@@ -116,7 +116,7 @@ function ProductGrid() {
         </p>
       )}
 
-      <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
         {products.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
@@ -146,9 +146,9 @@ export default function ProductsPage() {
       </div>
 
       <Suspense fallback={
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-80 bg-white/5 animate-pulse rounded-xl" />
+            <div key={i} className="h-72 bg-white/5 animate-pulse rounded-xl" />
           ))}
         </div>
       }>
