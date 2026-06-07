@@ -3,6 +3,8 @@ name: Deploy Customer Web to GKE
 on:
   push:
     branches: [dev]
+  repository_dispatch:
+    types: [deploy]
 
 env:
   REGION: asia-southeast1
