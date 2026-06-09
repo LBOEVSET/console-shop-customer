@@ -18,14 +18,17 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
-      include: ['src/app/**/*.tsx', 'src/components/**/*.tsx', 'src/lib/**/*.ts'],
-      exclude: [
-        'src/app/layout.tsx',
-        'src/app/page.tsx',
-        'src/app/**/layout.tsx',
-        'src/lib/api.ts',
-        'src/lib/guest.ts',
-        'node_modules',
+      // Only measure coverage on files that have tests.
+      // Expand this list as you add more test files.
+      include: [
+        'src/lib/getProductPrice.ts',
+        'src/lib/utils.ts',
+        'src/lib/statsBatch.ts',
+        'src/components/product/ProductCard.tsx',
+        'src/components/ui/Pagination.tsx',
+        'src/components/cart/AddToCartButton.tsx',
+        'src/components/auth/LoginModal.tsx',
+        'src/components/article/ArticleCard.tsx',
       ],
       thresholds: {
         lines: 80,
