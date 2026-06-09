@@ -63,7 +63,7 @@ describe('LoginModal', () => {
 
   it('has a link to the register page', () => {
     render(<LoginModal onSuccess={onSuccess} onClose={onClose} />)
-    const registerLink = screen.getByRole('link', { name: /register/i })
+    const registerLink = screen.getByRole('link', { name: /create an account/i })
     expect(registerLink).toHaveAttribute('href', '/register')
   })
 })

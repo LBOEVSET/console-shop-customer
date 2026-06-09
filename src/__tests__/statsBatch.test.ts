@@ -1,18 +1,25 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-const mockPost = vi.fn()
+// vi.mock is hoisted to the top of the file, so mockPost must be declared
+// with vi.hoisted() to be accessible inside the factory.
+const { mockPost } = vi.hoisted(() => ({ mockPost: vi.fn() }))
+
 vi.mock('@/lib/api', () => ({
   default: { post: mockPost },
 }))
 
-// Import after mock so the module gets the mocked api
-import { queueStat } from '@/lib/statsBatch'
+// Re-import the module fresh each test so the singleton queue is reset
+let queueStat: (event: any) => void
 
 describe('statsBatch', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.useFakeTimers()
     vi.clearAllMocks()
     mockPost.mockResolvedValue({})
+    // Reset module so queue and flushTimer are cleared between tests
+    vi.resetModules()
+    const mod = await import('@/lib/statsBatch')
+    queueStat = mod.queueStat
   })
 
   afterEach(() => {
