@@ -35,8 +35,9 @@ while ((match = testCaseRegex.exec(input)) !== null) {
   const classname = attrs.classname || 'unknown'
   const duration  = Math.round(parseFloat(attrs.time || '0') * 1000)
 
-  // Derive a synthetic file path from classname
-  const filePath = classname.replace(/\./g, '/') + '.tsx'
+  // Vitest JUnit outputs the actual file path as classname (e.g. src/__tests__/Foo.test.tsx).
+  // Use it directly — do NOT replace dots with slashes.
+  const filePath = classname
 
   const hasFailure = inner.includes('<failure')
   const hasSkipped = inner.includes('<skipped')
