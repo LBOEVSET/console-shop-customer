@@ -3,6 +3,9 @@ name: Deploy Customer Web to GKE
 on:
   push:
     branches: [dev]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
   workflow_dispatch:
   repository_dispatch:
     types: [deploy]
@@ -15,8 +18,49 @@ env:
   NS:     console-shop
 
 jobs:
+  # ── Job 1: Test + SonarQube quality gate ─────────────────────────────────────
+  test-and-scan:
+    name: Test & Quality Gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: npm run test:ci
+
+      - name: Convert JUnit to SonarQube format
+        run: node scripts/junit-to-sonar-generic.mjs test-results.xml sonar-test-results.xml
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: SonarQube Quality Gate
+        uses: SonarSource/sonarqube-quality-gate-action@v1
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+  # ── Job 2: Build + Deploy (only if tests pass) ────────────────────────────────
   build-and-deploy:
     name: Build, Push & Rollout
+    needs: test-and-scan
     runs-on: ubuntu-latest
     permissions:
       contents: read
