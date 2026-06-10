@@ -21,14 +21,23 @@ export default defineConfig({
       // Only measure coverage on files that have tests.
       // Expand this list as you add more test files.
       include: [
+        // lib utilities
         'src/lib/getProductPrice.ts',
         'src/lib/utils.ts',
         'src/lib/statsBatch.ts',
+        // components
         'src/components/product/ProductCard.tsx',
         'src/components/ui/Pagination.tsx',
+        'src/components/ui/SectionHeader.tsx',
         'src/components/cart/AddToCartButton.tsx',
         'src/components/auth/LoginModal.tsx',
+        'src/components/auth/SessionExpiredBanner.tsx',
+        'src/components/auth/auth-initializer.tsx',
+        'src/components/auth/GuestInitializer.tsx',
         'src/components/article/ArticleCard.tsx',
+        'src/components/arcade/ArcadeTicker.tsx',
+        'src/components/arcade/InsertCoinButton.tsx',
+        'src/components/layout/footer.tsx',
       ],
       thresholds: {
         lines: 80,

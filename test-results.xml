@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="90" failures="0" errors="0" time="3.993129041">
+    <testsuite name="src/__tests__/AddToCartButton.test.tsx" timestamp="2026-06-10T02:26:09.039Z" hostname="MacBookPro" tests="5" failures="0" errors="0" skipped="0" time="0.187155042">
+        <testcase classname="src/__tests__/AddToCartButton.test.tsx" name="AddToCartButton &gt; renders Add to Cart button" time="0.159993625">
+        </testcase>
+        <testcase classname="src/__tests__/AddToCartButton.test.tsx" name="AddToCartButton &gt; is disabled when stock is 0" time="0.009054375">
+        </testcase>
+        <testcase classname="src/__tests__/AddToCartButton.test.tsx" name="AddToCartButton &gt; is enabled when stock &gt; 0" time="0.004450625">
+        </testcase>
+        <testcase classname="src/__tests__/AddToCartButton.test.tsx" name="AddToCartButton &gt; calls addToCart with productId and quantity 1 on click" time="0.008941333">
+        </testcase>
+        <testcase classname="src/__tests__/AddToCartButton.test.tsx" name="AddToCartButton &gt; does not call addToCart when stock is 0" time="0.003085958">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/__tests__/ArcadeTicker.test.tsx" timestamp="2026-06-10T02:26:09.042Z" hostname="MacBookPro" tests="3" failures="0" errors="0" skipped="0" time="0.063635792">
+        <testcase classname="src/__tests__/ArcadeTicker.test.tsx" name="ArcadeTicker &gt; renders without crashing" time="0.033390917">
+        </testcase>
+        <testcase classname="src/__tests__/ArcadeTicker.test.tsx" name="ArcadeTicker &gt; displays hot deals text" time="0.024412958">
+        </testcase>
+        <testcase classname="src/__tests__/ArcadeTicker.test.tsx" name="ArcadeTicker &gt; displays instant delivery text" time="0.004243709">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/__tests__/ArticleCard.test.tsx" timestamp="2026-06-10T02:26:09.042Z" hostname="MacBookPro" tests="8" failures="0" errors="0" skipped="0" time="0.508815125">
+        <testcase classname="src/__tests__/ArticleCard.test.tsx" name="ArticleCard &gt; renders article title" time="0.086536292">
+        </testcase>
+        <testcase classname="src/__tests__/ArticleCard.test.tsx" name="ArticleCard &gt; renders article summary" time="0.026108542">
+        </testcase>
+        <testcase classname="src/__tests__/ArticleCard.test.tsx" name="ArticleCard &gt; renders article type label" time="0.005621083">
+        </testcase>
+        <testcase classname="src/__tests__/ArticleCard.test.tsx" name="ArticleCard &gt; links to the article detail page" time="0.072678708">
+        </testcase>
+        <testcase classname="src/__tests__/ArticleCard.test.tsx" name="ArticleCard &gt; uses the article image url" time="0.205429166">
+        </testcase>
+        <testcase classname="src/__tests__/ArticleCard.test.tsx" name="ArticleCard &gt; uses placeholder image when no media" time="0.016373333">
+        </testcase>
+        <testcase classname="src/__tests__/ArticleCard.test.tsx" name="ArticleCard &gt; uses placeholder when media has no IMAGE type" time="0.012276708">
+        </testcase>
+        <testcase classname="src/__tests__/ArticleCard.test.tsx" name="ArticleCard &gt; renders Read more text" time="0.079884042">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/__tests__/AuthInitializer.test.tsx" timestamp="2026-06-10T02:26:09.043Z" hostname="MacBookPro" tests="4" failures="0" errors="0" skipped="0" time="0.284764333">
+        <testcase classname="src/__tests__/AuthInitializer.test.tsx" name="AuthInitializer &gt; renders null" time="0.048963875">
+        </testcase>
+        <testcase classname="src/__tests__/AuthInitializer.test.tsx" name="AuthInitializer &gt; calls setUser and setItems on successful profile fetch" time="0.054871583">
+        </testcase>
+        <testcase classname="src/__tests__/AuthInitializer.test.tsx" name="AuthInitializer &gt; calls setUser(null) and setLoading(false) on API error" time="0.05518825">
+        </testcase>
+        <testcase classname="src/__tests__/AuthInitializer.test.tsx" name="AuthInitializer &gt; handles null profile in response gracefully" time="0.122089084">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/__tests__/Footer.test.tsx" timestamp="2026-06-10T02:26:09.044Z" hostname="MacBookPro" tests="6" failures="0" errors="0" skipped="0" time="0.206603">
+        <testcase classname="src/__tests__/Footer.test.tsx" name="Footer &gt; renders the brand name" time="0.033644583">
+        </testcase>
+        <testcase classname="src/__tests__/Footer.test.tsx" name="Footer &gt; renders Shop section heading" time="0.006415334">
+        </testcase>
+        <testcase classname="src/__tests__/Footer.test.tsx" name="Footer &gt; renders Account section heading" time="0.013053166">
+        </testcase>
+        <testcase classname="src/__tests__/Footer.test.tsx" name="Footer &gt; renders Info section heading" time="0.00516925">
+        </testcase>
+        <testcase classname="src/__tests__/Footer.test.tsx" name="Footer &gt; renders links to key pages" time="0.142573791">
+        </testcase>
+        <testcase classname="src/__tests__/Footer.test.tsx" name="Footer &gt; renders copyright notice" time="0.004087416">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/__tests__/GuestInitializer.test.tsx" timestamp="2026-06-10T02:26:09.045Z" hostname="MacBookPro" tests="5" failures="0" errors="0" skipped="0" time="0.1016345">
+        <testcase classname="src/__tests__/GuestInitializer.test.tsx" name="GuestInitializer &gt; renders null" time="0.012273709">
+        </testcase>
+        <testcase classname="src/__tests__/GuestInitializer.test.tsx" name="GuestInitializer &gt; calls guest init fetch when user is null and not already initialized" time="0.007870625">
+        </testcase>
+        <testcase classname="src/__tests__/GuestInitializer.test.tsx" name="GuestInitializer &gt; does not call fetch when user is logged in" time="0.027150875">
+        </testcase>
+        <testcase classname="src/__tests__/GuestInitializer.test.tsx" name="GuestInitializer &gt; does not call fetch while auth is still loading" time="0.024650166">
+        </testcase>
+        <testcase classname="src/__tests__/GuestInitializer.test.tsx" name="GuestInitializer &gt; does not call fetch a second time when sessionStorage flag is set" time="0.027493625">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/__tests__/InsertCoinButton.test.tsx" timestamp="2026-06-10T02:26:09.045Z" hostname="MacBookPro" tests="3" failures="0" errors="0" skipped="0" time="0.114460833">
+        <testcase classname="src/__tests__/InsertCoinButton.test.tsx" name="InsertCoinButton &gt; shows INSERT COIN by default" time="0.085262959">
+        </testcase>
+        <testcase classname="src/__tests__/InsertCoinButton.test.tsx" name="InsertCoinButton &gt; shows GAME STARTED! after click" time="0.016488291">
+        </testcase>
+        <testcase classname="src/__tests__/InsertCoinButton.test.tsx" name="InsertCoinButton &gt; remains GAME STARTED! on subsequent clicks" time="0.009360667">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/__tests__/LoginModal.test.tsx" timestamp="2026-06-10T02:26:09.046Z" hostname="MacBookPro" tests="6" failures="0" errors="0" skipped="0" time="1.006906625">
+        <testcase classname="src/__tests__/LoginModal.test.tsx" name="LoginModal &gt; renders email/username and password fields" time="0.086475084">
+        </testcase>
+        <testcase classname="src/__tests__/LoginModal.test.tsx" name="LoginModal &gt; calls onClose when close button is clicked" time="0.019952792">
+        </testcase>
+        <testcase classname="src/__tests__/LoginModal.test.tsx" name="LoginModal &gt; calls onSuccess when login succeeds" time="0.710852625">
+        </testcase>
+        <testcase classname="src/__tests__/LoginModal.test.tsx" name="LoginModal &gt; shows error message when login fails with message" time="0.136333917">
+        </testcase>
+        <testcase classname="src/__tests__/LoginModal.test.tsx" name="LoginModal &gt; shows fallback error when login throws" time="0.024353417">
+        </testcase>
+        <testcase classname="src/__tests__/LoginModal.test.tsx" name="LoginModal &gt; has a link to the register page" time="0.026092583">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/__tests__/Pagination.test.tsx" timestamp="2026-06-10T02:26:09.046Z" hostname="MacBookPro" tests="11" failures="0" errors="0" skipped="0" time="0.514218875">
+        <testcase classname="src/__tests__/Pagination.test.tsx" name="Pagination &gt; renders nothing when totalPages &lt;= 1" time="0.018621292">
+        </testcase>
+        <testcase classname="src/__tests__/Pagination.test.tsx" name="Pagination &gt; renders Previous and Next buttons" time="0.016">
+        </testcase>
+        <testcase classname="src/__tests__/Pagination.test.tsx" name="Pagination &gt; Previous button is disabled on first page" time="0.0059625">
+        </testcase>
+        <testcase classname="src/__tests__/Pagination.test.tsx" name="Pagination &gt; Next button is disabled on last page" time="0.221769333">
+        </testcase>
+        <testcase classname="src/__tests__/Pagination.test.tsx" name="Pagination &gt; calls onPageChange with page - 1 when Previous clicked" time="0.026918417">
+        </testcase>
+        <testcase classname="src/__tests__/Pagination.test.tsx" name="Pagination &gt; calls onPageChange with page + 1 when Next clicked" time="0.01371325">
+        </testcase>
+        <testcase classname="src/__tests__/Pagination.test.tsx" name="Pagination &gt; calls onPageChange with specific page number when clicked" time="0.005698583">
+        </testcase>
+        <testcase classname="src/__tests__/Pagination.test.tsx" name="Pagination &gt; renders all pages when totalPages &lt;= 7" time="0.178547667">
+        </testcase>
+        <testcase classname="src/__tests__/Pagination.test.tsx" name="Pagination &gt; renders ellipsis for large page ranges" time="0.015849125">
+        </testcase>
+        <testcase classname="src/__tests__/Pagination.test.tsx" name="Pagination &gt; highlights the current page" time="0.004626208">
+        </testcase>
+        <testcase classname="src/__tests__/Pagination.test.tsx" name="Pagination &gt; accepts optional className prop" time="0.00504">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/__tests__/ProductCard.test.tsx" timestamp="2026-06-10T02:26:09.049Z" hostname="MacBookPro" tests="9" failures="0" errors="0" skipped="0" time="0.608644166">
+        <testcase classname="src/__tests__/ProductCard.test.tsx" name="ProductCard &gt; renders product title" time="0.093581416">
+            <system-err>
+Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?
+
+Check the render method of `ProductCard`.
+    at default (/Users/ljouvnee/Projects/console-shop-customer/src/__tests__/setup.tsx:9:15)
+    at a
+    at default (/Users/ljouvnee/Projects/console-shop-customer/src/__tests__/setup.tsx:19:15)
+    at div
+    at ProductCard (/Users/ljouvnee/Projects/console-shop-customer/src/components/product/ProductCard.tsx:20:24)
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/__tests__/ProductCard.test.tsx" name="ProductCard &gt; renders a link to the product detail page" time="0.281862125">
+        </testcase>
+        <testcase classname="src/__tests__/ProductCard.test.tsx" name="ProductCard &gt; renders the category tag" time="0.023667667">
+        </testcase>
+        <testcase classname="src/__tests__/ProductCard.test.tsx" name="ProductCard &gt; renders a discount badge when salePrice is set" time="0.018493125">
+        </testcase>
+        <testcase classname="src/__tests__/ProductCard.test.tsx" name="ProductCard &gt; does not render discount badge when no salePrice" time="0.081227208">
+        </testcase>
+        <testcase classname="src/__tests__/ProductCard.test.tsx" name="ProductCard &gt; renders nothing when product has no prices" time="0.026734375">
+        </testcase>
+        <testcase classname="src/__tests__/ProductCard.test.tsx" name="ProductCard &gt; uses placeholder image when no media" time="0.050522542">
+        </testcase>
+        <testcase classname="src/__tests__/ProductCard.test.tsx" name="ProductCard &gt; uses first IMAGE media url when media is present" time="0.010220625">
+        </testcase>
+        <testcase classname="src/__tests__/ProductCard.test.tsx" name="ProductCard &gt; shows Add to Cart button" time="0.0147045">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/__tests__/SectionHeader.test.tsx" timestamp="2026-06-10T02:26:09.050Z" hostname="MacBookPro" tests="3" failures="0" errors="0" skipped="0" time="0.060690125">
+        <testcase classname="src/__tests__/SectionHeader.test.tsx" name="SectionHeader &gt; renders the title" time="0.05519425">
+        </testcase>
+        <testcase classname="src/__tests__/SectionHeader.test.tsx" name="SectionHeader &gt; renders the View All link" time="0.00168525">
+        </testcase>
+        <testcase classname="src/__tests__/SectionHeader.test.tsx" name="SectionHeader &gt; renders different titles correctly" time="0.002637333">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/__tests__/SessionExpiredBanner.test.tsx" timestamp="2026-06-10T02:26:09.050Z" hostname="MacBookPro" tests="3" failures="0" errors="0" skipped="0" time="0.119338959">
+        <testcase classname="src/__tests__/SessionExpiredBanner.test.tsx" name="SessionExpiredBanner &gt; renders nothing when session param is not present" time="0.015038458">
+        </testcase>
+        <testcase classname="src/__tests__/SessionExpiredBanner.test.tsx" name="SessionExpiredBanner &gt; shows the banner when session=expired is in the URL" time="0.022722583">
+        </testcase>
+        <testcase classname="src/__tests__/SessionExpiredBanner.test.tsx" name="SessionExpiredBanner &gt; hides the banner when the close button is clicked" time="0.07914325">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/__tests__/getProductPrice.test.ts" timestamp="2026-06-10T02:26:09.050Z" hostname="MacBookPro" tests="11" failures="0" errors="0" skipped="0" time="0.002846625">
+        <testcase classname="src/__tests__/getProductPrice.test.ts" name="getProductPrice &gt; returns null when no prices are defined" time="0.0008815">
+        </testcase>
+        <testcase classname="src/__tests__/getProductPrice.test.ts" name="getProductPrice &gt; returns null when no matching region and no US fallback" time="0.0001025">
+        </testcase>
+        <testcase classname="src/__tests__/getProductPrice.test.ts" name="getProductPrice &gt; returns exact region price when available" time="0.00014825">
+        </testcase>
+        <testcase classname="src/__tests__/getProductPrice.test.ts" name="getProductPrice &gt; converts US price to THB (×35) when TH region has no price" time="0.000075166">
+        </testcase>
+        <testcase classname="src/__tests__/getProductPrice.test.ts" name="getProductPrice &gt; converts US salePrice to THB when salePrice exists" time="0.000089959">
+        </testcase>
+        <testcase classname="src/__tests__/getProductPrice.test.ts" name="getProductPrice &gt; falls back to US price for non-TH region" time="0.000106959">
+        </testcase>
+        <testcase classname="src/__tests__/getProductPrice.test.ts" name="getProductPrice &gt; calculates hasDiscount = false when salePrice is undefined" time="0.000058041">
+        </testcase>
+        <testcase classname="src/__tests__/getProductPrice.test.ts" name="getProductPrice &gt; calculates hasDiscount = false when salePrice is 0" time="0.000049542">
+        </testcase>
+        <testcase classname="src/__tests__/getProductPrice.test.ts" name="getProductPrice &gt; sets finalPrice to salePrice when there is a discount" time="0.000058041">
+        </testcase>
+        <testcase classname="src/__tests__/getProductPrice.test.ts" name="getProductPrice &gt; calculates discount percentage correctly" time="0.000042875">
+        </testcase>
+        <testcase classname="src/__tests__/getProductPrice.test.ts" name="getProductPrice &gt; rounds discount percentage" time="0.0000425">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/__tests__/statsBatch.test.ts" timestamp="2026-06-10T02:26:09.051Z" hostname="MacBookPro" tests="5" failures="0" errors="0" skipped="0" time="0.200445708">
+        <testcase classname="src/__tests__/statsBatch.test.ts" name="statsBatch &gt; does not POST immediately on queueStat" time="0.117238417">
+        </testcase>
+        <testcase classname="src/__tests__/statsBatch.test.ts" name="statsBatch &gt; POSTs after 2-second flush interval" time="0.00650925">
+        </testcase>
+        <testcase classname="src/__tests__/statsBatch.test.ts" name="statsBatch &gt; batches multiple events into a single POST" time="0.018038042">
+        </testcase>
+        <testcase classname="src/__tests__/statsBatch.test.ts" name="statsBatch &gt; does not POST when queue is empty after flush" time="0.027186084">
+        </testcase>
+        <testcase classname="src/__tests__/statsBatch.test.ts" name="statsBatch &gt; silently ignores POST errors" time="0.030147458">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/__tests__/utils.test.ts" timestamp="2026-06-10T02:26:09.052Z" hostname="MacBookPro" tests="8" failures="0" errors="0" skipped="0" time="0.012969333">
+        <testcase classname="src/__tests__/utils.test.ts" name="cn (classname utility) &gt; returns a single class unchanged" time="0.0099665">
+        </testcase>
+        <testcase classname="src/__tests__/utils.test.ts" name="cn (classname utility) &gt; merges multiple classes" time="0.00031725">
+        </testcase>
+        <testcase classname="src/__tests__/utils.test.ts" name="cn (classname utility) &gt; filters out falsy values" time="0.000077208">
+        </testcase>
+        <testcase classname="src/__tests__/utils.test.ts" name="cn (classname utility) &gt; handles conditional object syntax" time="0.000323292">
+        </testcase>
+        <testcase classname="src/__tests__/utils.test.ts" name="cn (classname utility) &gt; deduplicates conflicting Tailwind classes (last wins)" time="0.000183875">
+        </testcase>
+        <testcase classname="src/__tests__/utils.test.ts" name="cn (classname utility) &gt; merges text color conflicts correctly" time="0.000129708">
+        </testcase>
+        <testcase classname="src/__tests__/utils.test.ts" name="cn (classname utility) &gt; returns empty string for no arguments" time="0.000056959">
+        </testcase>
+        <testcase classname="src/__tests__/utils.test.ts" name="cn (classname utility) &gt; handles array syntax from clsx" time="0.000049583">
+        </testcase>
+    </testsuite>
+</testsuites>
